@@ -3,61 +3,53 @@ namespace DfsSolver
 {
 	public class Player
 	{
-		//private double _inLineupValue;
-		//public bool IsInLineup
-		//{
-		//	get { return _inLineupValue == 1; }
-		//	set { _inLineupValue = value ? 1 : 0; }
-		//}
-		//public double InLineup
-		//{
-		//	get { return _inLineupValue; }
-		//	set { _inLineupValue = value; }
-		//}
-
-		private double _isChosenPitcher;
-		public bool IsChosenPitcher
-		{
-			get { return _isChosenPitcher == 1; }
-			set { _isChosenPitcher = value ? 1 : 0; }
-		}
-		public double ChosenPitcher
-		{
-			get { return _isChosenPitcher; }
-			set { _isChosenPitcher = value; }
-		}
-
-		private double _isChosenCatcher;
-		public bool IsChosenCatcher
-		{
-			get { return _isChosenCatcher == 1; }
-			set { _isChosenCatcher = value ? 1 : 0; }
-		}
-		public double ChosenCatcher
-		{
-			get { return _isChosenCatcher; }
-			set { _isChosenCatcher = value; }
-		}
-
-		public double PitcherVal
-		{
-			get { return Position == "P" ? 1 : 0; }
-		}
-		public double CatcherVal
-		{
-			get { return Position == "C" ? 1 : 0; }
-		}
-
 		public int Id { get; internal set; }
 		public string Name { get; internal set; }
 		public string Position { get; internal set; }
 		public int ProjectedPoints { get; internal set; }
 		public int Salary { get; internal set; }
 
-		public override string ToString()
+        // used for solver Decision binding
+        public double ChosenPitcher { get; set; }
+        public double ChosenCatcher { get; set; }
+        public double Chosen1B { get; set; }
+        public double Chosen2B { get; set; }
+        public double Chosen3B { get; set; }
+        public double ChosenSS { get; set; }
+        public double ChosenLF { get; set; }
+        public double ChosenCF { get; set; }
+        public double ChosenRF { get; set; }
+
+        // used for solver Parameter binding
+        public double IsPitcherVal { get { return Position == "P" ? 1 : 0; } }
+        public double IsCatcherVal { get { return Position == "C" ? 1 : 0; } }
+        public double Is1BVal { get { return Position == "1B" ? 1 : 0; } }
+        public double Is2BVal { get { return Position == "2B" ? 1 : 0; } }
+        public double Is3BVal { get { return Position == "3B" ? 1 : 0; } }
+        public double IsSSVal { get { return Position == "SS" ? 1 : 0; } }
+        public double IsLFVal { get { return Position == "LF" ? 1 : 0; } }
+        public double IsCFVal { get { return Position == "CF" ? 1 : 0; } }
+        public double IsRFVal { get { return Position == "RF" ? 1 : 0; } }
+
+        public bool Chosen {
+            get
+            {
+                return 
+                    ChosenPitcher == 1 && IsPitcherVal == 1 ||
+                    ChosenCatcher == 1 && IsCatcherVal == 1 || 
+                    Chosen1B == 1 && Is1BVal == 1 || 
+                    Chosen2B == 1 && Is2BVal == 1 || 
+                    Chosen3B == 1 && Is3BVal == 1 || 
+                    ChosenSS == 1 && IsSSVal == 1 || 
+                    ChosenLF == 1 && IsLFVal == 1 || 
+                    ChosenCF == 1 && IsCFVal == 1 || 
+                    ChosenRF == 1 && IsRFVal == 1;
+            }
+        }
+
+        public override string ToString()
 		{
 			return string.Format("{0} {1} {2} {3}", Position, Salary, ProjectedPoints, Name);
 		}
-
 	}
 }

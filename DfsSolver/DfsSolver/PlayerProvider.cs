@@ -5,7 +5,7 @@ namespace DfsSolver
 {
     public class PlayerProvider
     {
-        public static string[] RosterPositions = new string[] { "P", "C" };
+        public static string[] RosterPositions = new string[] { "P", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF" };
 
         public static IEnumerable<Player> GetPlayersRandom()
         {
@@ -14,11 +14,14 @@ namespace DfsSolver
             var id = 1;
             foreach (var rosterPosition in RosterPositions)
             {
-                var numPlayers = random.Next(4, 10);
+                // note: in the current code, if there are too many players
+                // we'll exceed the free license and can't work
+                // size of a player pool that is ok is somewhere around 54
+                var numPlayers = random.Next(6,7);
                 for (var i = 0; i< numPlayers; i++)
                 {
-                    var name = string.Format("Joe_{0} Player", id);
-                    var salary = random.Next(2000, 5000);
+                    var name = string.Format("Joe_{0} {1}_Player", id, rosterPosition);
+                    var salary = random.Next(3000, 8000);
                     var projectedPoints = random.Next(0, 30);
                     players.Add(new Player
                     {
@@ -30,60 +33,6 @@ namespace DfsSolver
                     });
                 }
             }
-            return players;
-        }
-
-        public static IEnumerable<Player> GetPlayers()
-        {
-            var players = new List<Player>();
-            players.Add(new Player
-            {
-                Id = 1,
-                Name = "Joe Schmoe",
-                ProjectedPoints = 23,
-                Position = "P",
-                Salary = 4200
-            });
-            players.Add(new Player
-            {
-                Id = 2,
-                Name = "Jack Flack",
-                ProjectedPoints = 18,
-                Position = "P",
-                Salary = 2800
-            });
-            players.Add(new Player
-            {
-                Id = 3,
-                Name = "Carl Snarl",
-                ProjectedPoints = 11,
-                Position = "P",
-                Salary = 2400
-            });
-            players.Add(new Player
-            {
-                Id = 4,
-                Name = "Buster Guster",
-                ProjectedPoints = 12,
-                Position = "C",
-                Salary = 3800
-            });
-            players.Add(new Player
-            {
-                Id = 5,
-                Name = "Frank Jank",
-                ProjectedPoints = 10,
-                Position = "C",
-                Salary = 3000
-            });
-            players.Add(new Player
-            {
-                Id = 6,
-                Name = "Theo Leo",
-                ProjectedPoints = 11,
-                Position = "C",
-                Salary = 2400
-            });
             return players;
         }
     }
