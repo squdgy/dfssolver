@@ -78,12 +78,19 @@ namespace DfsSolver
             context.PropagateDecisions();
             var selected = from d in playerData
                            where d.IsChosenCatcher || d.IsChosenPitcher
-                           select d.ToString();
+                           select d;
 
+            Log(string.Format("Player Pool: {0} total: {1} pitchers, {2} catchers",
+                playerData.Count(), playerData.Count(p => p.Position == "P"), playerData.Count(p => p.Position == "C")));
+            var totalProjectedPoints = 0;
+            var totalSalary = 0;
             foreach (var s in selected)
             {
-                Log(s);
+                totalProjectedPoints += s.ProjectedPoints;
+                totalSalary += s.Salary;
+                Log(s.ToString());
             }
+            Log(string.Format("Projected Points: {0}, Used Salary: {1}", totalProjectedPoints, totalSalary));
         }
 
         private static void Log(string text)
