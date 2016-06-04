@@ -83,9 +83,7 @@ namespace DfsSolver
             );
             model.AddGoal("maxPoints", GoalKind.Maximize, sumOfProjectedPoints);
 
-            // Time to solve it
-            // note: due to license restrictions, this could throw an exception if there are
-            // too many players in the player pool and thus too many variables
+            // Find that lineup
             var solution = context.Solve();
             Log(solution.GetReport().ToString());
             if (solution.Quality == SolverQuality.Infeasible ||

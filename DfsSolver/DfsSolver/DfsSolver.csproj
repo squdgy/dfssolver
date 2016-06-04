@@ -36,7 +36,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>lib\LpSolvePlugIn.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Solver.Foundation" />
+    <Reference Include="Microsoft.Solver.Foundation">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\Microsoft.Solver.Foundation.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
