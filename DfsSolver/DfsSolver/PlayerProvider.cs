@@ -14,10 +14,7 @@ namespace DfsSolver
             var id = 1;
             foreach (var rosterPosition in RosterPositions)
             {
-                // note: in the current code, if there are too many players
-                // we'll exceed the free license and can't work
-                // size of a player pool that is ok is somewhere around 54
-                var numPlayers = random.Next(6,7);
+                var numPlayers = random.Next(4,15);
                 for (var i = 0; i< numPlayers; i++)
                 {
                     var name = string.Format("Joe_{0} {1}_Player", id, rosterPosition);
