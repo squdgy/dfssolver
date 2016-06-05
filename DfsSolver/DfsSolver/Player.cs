@@ -21,35 +21,29 @@ namespace DfsSolver
         public double ChosenRF { get; set; }
 
         // used for solver Parameter binding
-        public double IsPitcherVal { get { return Position == "P" ? 1 : 0; } }
-        public double IsCatcherVal { get { return Position == "C" ? 1 : 0; } }
-        public double Is1BVal { get { return Position == "1B" ? 1 : 0; } }
-        public double Is2BVal { get { return Position == "2B" ? 1 : 0; } }
-        public double Is3BVal { get { return Position == "3B" ? 1 : 0; } }
-        public double IsSSVal { get { return Position == "SS" ? 1 : 0; } }
-        public double IsLFVal { get { return Position == "LF" ? 1 : 0; } }
-        public double IsCFVal { get { return Position == "CF" ? 1 : 0; } }
-        public double IsRFVal { get { return Position == "RF" ? 1 : 0; } }
+        public double IsPitcherVal => Position == "P" ? 1 : 0;
+	    public double IsCatcherVal => Position == "C" ? 1 : 0;
+	    public double Is1BVal => Position == "1B" ? 1 : 0;
+	    public double Is2BVal => Position == "2B" ? 1 : 0;
+	    public double Is3BVal => Position == "3B" ? 1 : 0;
+	    public double IsSSVal => Position == "SS" ? 1 : 0;
+	    public double IsLFVal => Position == "LF" ? 1 : 0;
+	    public double IsCFVal => Position == "CF" ? 1 : 0;
+	    public double IsRFVal => Position == "RF" ? 1 : 0;
 
-        public bool Chosen {
-            get
-            {
-                return 
-                    ChosenPitcher == 1 && IsPitcherVal == 1 ||
-                    ChosenCatcher == 1 && IsCatcherVal == 1 || 
-                    Chosen1B == 1 && Is1BVal == 1 || 
-                    Chosen2B == 1 && Is2BVal == 1 || 
-                    Chosen3B == 1 && Is3BVal == 1 || 
-                    ChosenSS == 1 && IsSSVal == 1 || 
-                    ChosenLF == 1 && IsLFVal == 1 || 
-                    ChosenCF == 1 && IsCFVal == 1 || 
-                    ChosenRF == 1 && IsRFVal == 1;
-            }
-        }
+	    public bool Chosen => ChosenPitcher == 1 && IsPitcherVal == 1 ||
+	                          ChosenCatcher == 1 && IsCatcherVal == 1 || 
+	                          Chosen1B == 1 && Is1BVal == 1 || 
+	                          Chosen2B == 1 && Is2BVal == 1 || 
+	                          Chosen3B == 1 && Is3BVal == 1 || 
+	                          ChosenSS == 1 && IsSSVal == 1 || 
+	                          ChosenLF == 1 && IsLFVal == 1 || 
+	                          ChosenCF == 1 && IsCFVal == 1 || 
+	                          ChosenRF == 1 && IsRFVal == 1;
 
-        public override string ToString()
+	    public override string ToString()
 		{
-			return string.Format("{0} {1} {2} {3}", Position, Salary, ProjectedPoints, Name);
+			return $"{Position} {Salary} {ProjectedPoints} {Name}";
 		}
 	}
 }

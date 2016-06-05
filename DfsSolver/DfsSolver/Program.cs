@@ -1,11 +1,14 @@
 ﻿// 
+
+using System.Linq;
+
 namespace DfsSolver
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main()
         {
-            LineupOptimizer.Solve(PlayerProvider.GetPlayersRandom());
+            LineupOptimizer.Solve(PlayerProvider.GetPlayersRandom().ToList());
         }
     }
 }

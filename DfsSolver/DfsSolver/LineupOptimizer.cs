@@ -8,10 +8,10 @@ namespace DfsSolver
 {
     public class LineupOptimizer
     {
-        public static void Solve(IEnumerable<Player> playerData)
+        public static void Solve(IList<Player> playerData)
         {
             // Constants
-            int salaryCap = 50000;
+            const int salaryCap = 50000;
             var rosterSlots = new Dictionary<string, int>
             {
                 { "P", 2 },
@@ -93,7 +93,7 @@ namespace DfsSolver
                 return;
             }
             context.PropagateDecisions();
-            ReportSolution(playerData, solution);
+            ReportSolution(playerData);
         }
 
         private static Decision CreateAndBindDecision(IEnumerable<Player> playerData, Model model, Set players, string bindingProperty)
@@ -112,15 +112,15 @@ namespace DfsSolver
             return param;
         }
 
-        private static void ReportSolution(IEnumerable<Player> playerData, Solution solution)
+        private static void ReportSolution(IList<Player> playerData)
         {
             var selected = playerData.Where(p => p.Chosen);
 
-            Log(string.Format("Player Pool: {0} total:", playerData.Count()));
+            Log($"Player Pool: {playerData.Count} total:");
             var groupings = playerData.GroupBy(p => p.Position);
             foreach (var grouping in groupings)
             {
-                Log(string.Format("{0} {1}", grouping.Key, grouping.Count()));
+                Log($"{grouping.Key} {grouping.Count()}");
             }
 
             var totalProjectedPoints = 0;
@@ -131,7 +131,7 @@ namespace DfsSolver
                 totalSalary += s.Salary;
                 Log(s.ToString());
             }
-            Log(string.Format("Projected Points: {0}, Used Salary: {1}", totalProjectedPoints, totalSalary));
+            Log($"Projected Points: {totalProjectedPoints}, Used Salary: {totalSalary}");
         }
 
         private static void Log(string text)

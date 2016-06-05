@@ -17,7 +17,7 @@ namespace DfsSolver
                 var numPlayers = random.Next(4,15);
                 for (var i = 0; i< numPlayers; i++)
                 {
-                    var name = string.Format("Joe_{0} {1}_Player", id, rosterPosition);
+                    var name = $"Joe_{id} {rosterPosition}_Player";
                     var salary = random.Next(3000, 8000);
                     var projectedPoints = random.Next(0, 30);
                     players.Add(new Player
