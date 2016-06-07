@@ -34,59 +34,39 @@ namespace DfsSolver
             Parameter projectedPoints = CreateAndBindParameter(playerData, model, players, "ProjectedPoints");
 
             // Positions
-            Parameter pitcher = CreateAndBindParameter(playerData, model, players, "IsPitcherVal");
-            Parameter catcher = CreateAndBindParameter(playerData, model, players, "IsCatcherVal");
-            Parameter firstBaseman = CreateAndBindParameter(playerData, model, players, "Is1BVal");
-            Parameter secondBaseman = CreateAndBindParameter(playerData, model, players, "Is2BVal");
-            Parameter thirdBaseman = CreateAndBindParameter(playerData, model, players, "Is3BVal");
-            Parameter shortstop = CreateAndBindParameter(playerData, model, players, "IsSSVal");
-            Parameter leftFielders = CreateAndBindParameter(playerData, model, players, "IsLFVal");
-            Parameter centerFielders = CreateAndBindParameter(playerData, model, players, "IsCFVal");
-            Parameter rightFielders = CreateAndBindParameter(playerData, model, players, "IsRFVal");
+            var positionParameters = new Dictionary<string, Parameter>();
+            positionParameters.Add("P", CreateAndBindParameter(playerData, model, players, "IsPitcherVal"));
+            positionParameters.Add("C", CreateAndBindParameter(playerData, model, players, "IsCatcherVal"));
+            positionParameters.Add("1B", CreateAndBindParameter(playerData, model, players, "Is1BVal"));
+            positionParameters.Add("2B", CreateAndBindParameter(playerData, model, players, "Is2BVal"));
+            positionParameters.Add("3B", CreateAndBindParameter(playerData, model, players, "Is3BVal"));
+            positionParameters.Add("SS", CreateAndBindParameter(playerData, model, players, "IsSSVal"));
+            positionParameters.Add("LF", CreateAndBindParameter(playerData, model, players, "IsLFVal"));
+            positionParameters.Add("CF", CreateAndBindParameter(playerData, model, players, "IsCFVal"));
+            positionParameters.Add("RF", CreateAndBindParameter(playerData, model, players, "IsRFVal"));
 
             // ---- Define Decisions ----
-            // For each position, if player is choosen for that position, 1 if true, and 0 if false
-            Decision chooseP = CreateAndBindDecision(playerData, model, players, "ChosenPitcher");
-            Decision chooseC = CreateAndBindDecision(playerData, model, players, "ChosenCatcher");
-            Decision choose1B = CreateAndBindDecision(playerData, model, players, "Chosen1B");
-            Decision choose2B = CreateAndBindDecision(playerData, model, players, "Chosen2B");
-            Decision choose3B = CreateAndBindDecision(playerData, model, players, "Chosen3B");
-            Decision chooseSS = CreateAndBindDecision(playerData, model, players, "ChosenSS");
-            Decision chooseLF = CreateAndBindDecision(playerData, model, players, "ChosenLF");
-            Decision chooseCF = CreateAndBindDecision(playerData, model, players, "ChosenCF");
-            Decision chooseRF = CreateAndBindDecision(playerData, model, players, "ChosenRF");
+            // Choose the player or not, 1 if true, and 0 if false
+            var choose = CreateAndBindDecision(playerData, model, players, "Chosen");
 
             // ---- Define Constraints ----
-            // Reserve the right number of each position.
-            model.AddConstraint("pitchers", Model.Sum(Model.ForEach(players, i => chooseP[i] * pitcher[i])) == rosterSlots["P"]);
-            model.AddConstraint("catchers", Model.Sum(Model.ForEach(players, i => chooseC[i] * catcher[i])) == rosterSlots["C"]);
-            model.AddConstraint("first_basemen", Model.Sum(Model.ForEach(players, i => choose1B[i] * firstBaseman[i])) == rosterSlots["1B"]);
-            model.AddConstraint("second_basemen", Model.Sum(Model.ForEach(players, i => choose2B[i] * secondBaseman[i])) == rosterSlots["2B"]);
-            model.AddConstraint("third_basemen", Model.Sum(Model.ForEach(players, i => choose3B[i] * thirdBaseman[i])) == rosterSlots["3B"]);
-            model.AddConstraint("shortstop", Model.Sum(Model.ForEach(players, i => chooseSS[i] * shortstop[i])) == rosterSlots["SS"]);
-            model.AddConstraint("leftFielders", Model.Sum(Model.ForEach(players, i => chooseLF[i] * leftFielders[i])) == rosterSlots["LF"]);
-            model.AddConstraint("centerFielders", Model.Sum(Model.ForEach(players, i => chooseCF[i] * centerFielders[i])) == rosterSlots["CF"]);
-            model.AddConstraint("rightFielders", Model.Sum(Model.ForEach(players, i => chooseRF[i] * rightFielders[i])) == rosterSlots["RF"]);
+            // reserve the right number to fill the roster
+            model.AddConstraint("chosen", Model.Sum(Model.ForEach(players, i => choose[i] * choose[i])) == rosterSlots.Sum(rs => rs.Value));
 
-            // same player can't be in 2 roster spots at the same time
-            model.AddConstraints("noMoreThanOnce", Model.ForEach(players, i =>
-                chooseP[i] + chooseC[i] + choose1B[i] + choose2B[i] + choose3B[i] + chooseSS[i] + chooseLF[i] + chooseCF[i] + chooseRF[i]
-                 <= 1));
+            // right number at each position.
+            foreach (var slot in rosterSlots)
+            {
+                var posParam = positionParameters[slot.Key];
+                var posTerm = Model.ForEachWhere(players, i => choose[i], p => posParam[p] == 1);
+                model.AddConstraint("pos_" + slot.Key, Model.Sum(posTerm) == slot.Value);
+            }
 
             // within the salary cap
-            var sumOfSalaries = Model.Sum(Model.ForEach(players, i =>
-                (chooseP[i] + chooseC[i] + choose1B[i] + choose2B[i] + choose3B[i] + chooseSS[i] + chooseLF[i] + chooseCF[i] + chooseRF[i]) *
-                salary[i])
-            );
-            model.AddConstraint("maxSalary", sumOfSalaries <= salaryCap);
+            model.AddConstraint("maxSalary", Model.Sum(Model.ForEach(players, i => choose[i] * salary[i])) <= salaryCap);
 
             // ---- Define the Goal ----
             // maximize for projectedPoints
-            var sumOfProjectedPoints = Model.Sum(Model.ForEach(players, i =>
-                (chooseP[i] + chooseC[i] + choose1B[i] + choose2B[i] + choose3B[i] + chooseSS[i] + chooseLF[i] + chooseCF[i] + chooseRF[i]) *
-                projectedPoints[i])
-            );
-            model.AddGoal("maxPoints", GoalKind.Maximize, sumOfProjectedPoints);
+            model.AddGoal("maxPoints", GoalKind.Maximize, Model.Sum(Model.ForEach(players, i => choose[i] * projectedPoints[i])));
 
             // Find that lineup
             var solution = context.Solve();
@@ -119,7 +99,7 @@ namespace DfsSolver
 
         private static void ReportSolution(IList<Player> playerData)
         {
-            var selected = playerData.Where(p => p.Chosen);
+            var selected = playerData.Where(p => p.IsChosen);
 
             Log($"Player Pool: {playerData.Count} total:");
             var totalProjectedPoints = 0;

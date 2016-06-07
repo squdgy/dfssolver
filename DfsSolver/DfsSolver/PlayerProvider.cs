@@ -14,7 +14,7 @@ namespace DfsSolver
             var id = 1;
             foreach (var rosterPosition in RosterPositions)
             {
-                var numPlayers = random.Next(4,15);
+                var numPlayers = random.Next(4,10);
                 for (var i = 0; i< numPlayers; i++)
                 {
                     var name = $"Joe_{id} Player";
