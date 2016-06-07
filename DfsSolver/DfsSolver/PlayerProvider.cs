@@ -17,15 +17,20 @@ namespace DfsSolver
                 var numPlayers = random.Next(4,15);
                 for (var i = 0; i< numPlayers; i++)
                 {
-                    var name = $"Joe_{id} {rosterPosition}_Player";
+                    var name = $"Joe_{id} Player";
                     var salary = random.Next(3000, 8000);
                     var projectedPoints = random.Next(0, 30);
+                    var positions = new HashSet<string>();
+                    positions.Add(rosterPosition);
+                    var hasSecondPosition = random.Next(0, 2) == 1;
+                    if (hasSecondPosition)
+                        positions.Add(RosterPositions[random.Next(0, 9)]);
                     players.Add(new Player
                     {
                         Id = id++,
                         Name = name,
                         ProjectedPoints = projectedPoints,
-                        Position = rosterPosition,
+                        Positions = positions,
                         Salary = salary
                     });
                 }

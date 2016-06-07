@@ -68,6 +68,11 @@ namespace DfsSolver
             model.AddConstraint("centerFielders", Model.Sum(Model.ForEach(players, i => chooseCF[i] * centerFielders[i])) == rosterSlots["CF"]);
             model.AddConstraint("rightFielders", Model.Sum(Model.ForEach(players, i => chooseRF[i] * rightFielders[i])) == rosterSlots["RF"]);
 
+            // same player can't be in 2 roster spots at the same time
+            model.AddConstraints("noMoreThanOnce", Model.ForEach(players, i =>
+                chooseP[i] + chooseC[i] + choose1B[i] + choose2B[i] + choose3B[i] + chooseSS[i] + chooseLF[i] + chooseCF[i] + chooseRF[i]
+                 <= 1));
+
             // within the salary cap
             var sumOfSalaries = Model.Sum(Model.ForEach(players, i =>
                 (chooseP[i] + chooseC[i] + choose1B[i] + choose2B[i] + choose3B[i] + chooseSS[i] + chooseLF[i] + chooseCF[i] + chooseRF[i]) *
@@ -117,12 +122,6 @@ namespace DfsSolver
             var selected = playerData.Where(p => p.Chosen);
 
             Log($"Player Pool: {playerData.Count} total:");
-            var groupings = playerData.GroupBy(p => p.Position);
-            foreach (var grouping in groupings)
-            {
-                Log($"{grouping.Key} {grouping.Count()}");
-            }
-
             var totalProjectedPoints = 0;
             var totalSalary = 0;
             foreach (var s in selected)
