@@ -1,11 +1,14 @@
 ﻿// Describes a player in a way that Solver can bind with it
+
+using System.Collections.Generic;
+
 namespace DfsSolver
 {
 	public class Player
 	{
 		public int Id { get; internal set; }
 		public string Name { get; internal set; }
-		public string Position { get; internal set; }
+		public HashSet<string> Positions { get; internal set; }
 		public int ProjectedPoints { get; internal set; }
 		public int Salary { get; internal set; }
 
@@ -21,15 +24,15 @@ namespace DfsSolver
         public double ChosenRF { get; set; }
 
         // used for solver Parameter binding
-        public double IsPitcherVal => Position == "P" ? 1 : 0;
-	    public double IsCatcherVal => Position == "C" ? 1 : 0;
-	    public double Is1BVal => Position == "1B" ? 1 : 0;
-	    public double Is2BVal => Position == "2B" ? 1 : 0;
-	    public double Is3BVal => Position == "3B" ? 1 : 0;
-	    public double IsSSVal => Position == "SS" ? 1 : 0;
-	    public double IsLFVal => Position == "LF" ? 1 : 0;
-	    public double IsCFVal => Position == "CF" ? 1 : 0;
-	    public double IsRFVal => Position == "RF" ? 1 : 0;
+        public double IsPitcherVal => Positions.Contains("P") ? 1 : 0;
+	    public double IsCatcherVal => Positions.Contains("C") ? 1 : 0;
+	    public double Is1BVal => Positions.Contains("1B") ? 1 : 0;
+	    public double Is2BVal => Positions.Contains("2B") ? 1 : 0;
+	    public double Is3BVal => Positions.Contains("3B") ? 1 : 0;
+	    public double IsSSVal => Positions.Contains("SS") ? 1 : 0;
+	    public double IsLFVal => Positions.Contains("LF") ? 1 : 0;
+	    public double IsCFVal => Positions.Contains("CF") ? 1 : 0;
+	    public double IsRFVal => Positions.Contains("RF") ? 1 : 0;
 
 	    public bool Chosen => ChosenPitcher == 1 && IsPitcherVal == 1 ||
 	                          ChosenCatcher == 1 && IsCatcherVal == 1 || 
@@ -42,8 +45,30 @@ namespace DfsSolver
 	                          ChosenRF == 1 && IsRFVal == 1;
 
 	    public override string ToString()
-		{
-			return $"{Position} {Salary} {ProjectedPoints} {Name}";
+	    {
+	        var positions = "";
+	        foreach (var pos in Positions)
+	            positions += pos + ",";
+	        var selectedPos = "";
+	        if (ChosenPitcher == 1)
+	            selectedPos += "P";
+            if (ChosenCatcher == 1)
+                selectedPos += "C";
+            if (Chosen1B == 1)
+                selectedPos += "1B";
+            if (Chosen2B == 1)
+                selectedPos += "2B";
+            if (Chosen3B == 1)
+                selectedPos += "3B";
+            if (ChosenSS == 1)
+                selectedPos += "SS";
+            if (ChosenLF == 1)
+                selectedPos += "LF";
+            if (ChosenCF == 1)
+                selectedPos += "CF";
+            if (ChosenRF == 1)
+                selectedPos += "RF";
+            return $"{selectedPos} {Salary} {ProjectedPoints} {Name} {positions}";
 		}
 	}
 }
