@@ -23,8 +23,8 @@ namespace DfsSolver
                     var hasSecondPosition = random.Next(0, 2) == 1;
                     if (hasSecondPosition)
                     {
-                        var position2 = 
-                            positions[random.Next(positions.Min(rs => rs.Id) - 1, positions.Max(rs => rs.Id))];
+                        var randomPositionIndex = random.Next(0, positions.Count);
+                        var position2 = positions[randomPositionIndex];
                         if (position2.Id != position1.Id)
                             playerPositions.Add(position2);
                     }

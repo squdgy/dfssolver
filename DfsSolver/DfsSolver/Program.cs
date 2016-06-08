@@ -6,7 +6,7 @@ namespace DfsSolver
     internal class Program
     {
         // map position id to position name
-        public static Position[] Positions = {
+        public static Position[] MLBPositions = {
             new Position {Id = 1, Name = "P"},
             new Position {Id = 2, Name = "C"},
             new Position {Id = 3, Name = "1B"},
@@ -19,7 +19,7 @@ namespace DfsSolver
         };
 
         // map positionId to number of draft positions to fill for that position
-        private static readonly Dictionary<int, int> DraftPositions = new Dictionary<int, int>
+        private static readonly Dictionary<int, int> MLBDraftPositions = new Dictionary<int, int>
             {
                 { 1, 2 }, //P
                 { 2, 1 }, //C
@@ -32,12 +32,20 @@ namespace DfsSolver
                 { 9, 1 }  //RF
             };
 
+        public static Position[] NASPositions = {
+            new Position {Id = 500, Name = "D"}
+        };
+        private static readonly Dictionary<int, int> NASDraftPositions = new Dictionary<int, int>
+        {
+            {500, 6}
+        };
+
 
         private static void Main()
         {
-            var positions = Positions.ToList();
+            var positions = MLBPositions.ToList();
             var playerPool = PlayerProvider.GetPlayersRandom(positions).ToList();
-            LineupOptimizer.Solve(playerPool.ToList(), DraftPositions, 50000);
+            LineupOptimizer.Solve(playerPool.ToList(), MLBDraftPositions, 50000);
         }
     }
 }
