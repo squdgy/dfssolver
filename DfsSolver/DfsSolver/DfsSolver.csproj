@@ -52,6 +52,7 @@
     <Compile Include="LineupOptimizer.cs" />
     <Compile Include="Player.cs" />
     <Compile Include="PlayerProvider.cs" />
+    <Compile Include="Position.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
