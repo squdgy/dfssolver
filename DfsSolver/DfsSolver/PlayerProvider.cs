@@ -15,6 +15,7 @@ namespace DfsSolver
             new Position {Id = 6, Name = "SS"},
             new Position {Id = 7, Name = "LF"},
             new Position {Id = 8, Name = "CF"},
+            new Position {Id = 9, Name = "RF"}
         };
 
         public static IEnumerable<Player> GetPlayersRandom()
