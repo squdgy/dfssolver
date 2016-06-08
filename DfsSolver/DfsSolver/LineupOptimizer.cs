@@ -8,42 +8,17 @@ namespace DfsSolver
 {
     public class LineupOptimizer
     {
-        public static void Solve(IList<Player> playerData)
+        public static void Solve(IList<Player> playerData, Dictionary<int, int> rosterSlots, int salaryCap)
         {
-            // Constants
-            const int salaryCap = 50000;
-            var rosterSlots = new Dictionary<string, int>
-            {
-                { "P", 2 },
-                { "C", 1 },
-                { "1B", 1 },
-                { "2B", 1 },
-                { "3B", 1 },
-                { "SS", 1 },
-                { "LF", 1 },
-                { "CF", 1 },
-                { "RF", 1 }
-            };
-
-            SolverContext context = SolverContext.GetContext();
-            Model model = context.CreateModel();
+            var context = SolverContext.GetContext();
+            var model = context.CreateModel();
             var players = new Set(Domain.Any, "players");
 
             // ---- Define Parameters ----
-            Parameter salary = CreateAndBindParameter(playerData, model, players, "Salary");
-            Parameter projectedPoints = CreateAndBindParameter(playerData, model, players, "ProjectedPoints");
-
-            // Positions
-            var positionParameters = new Dictionary<string, Parameter>();
-            positionParameters.Add("P", CreateAndBindParameter(playerData, model, players, "IsPitcherVal"));
-            positionParameters.Add("C", CreateAndBindParameter(playerData, model, players, "IsCatcherVal"));
-            positionParameters.Add("1B", CreateAndBindParameter(playerData, model, players, "Is1BVal"));
-            positionParameters.Add("2B", CreateAndBindParameter(playerData, model, players, "Is2BVal"));
-            positionParameters.Add("3B", CreateAndBindParameter(playerData, model, players, "Is3BVal"));
-            positionParameters.Add("SS", CreateAndBindParameter(playerData, model, players, "IsSSVal"));
-            positionParameters.Add("LF", CreateAndBindParameter(playerData, model, players, "IsLFVal"));
-            positionParameters.Add("CF", CreateAndBindParameter(playerData, model, players, "IsCFVal"));
-            positionParameters.Add("RF", CreateAndBindParameter(playerData, model, players, "IsRFVal"));
+            var salary = CreateAndBindParameter(playerData, model, players, "Salary");
+            var projectedPoints = CreateAndBindParameter(playerData, model, players, "ProjectedPoints");
+            var pos1 = CreateAndBindParameter(playerData, model, players, "PositionId1");
+            var pos2 = CreateAndBindParameter(playerData, model, players, "PositionId2");
 
             // ---- Define Decisions ----
             // Choose the player or not, 1 if true, and 0 if false
@@ -51,14 +26,16 @@ namespace DfsSolver
 
             // ---- Define Constraints ----
             // reserve the right number to fill the roster
-            model.AddConstraint("chosen", Model.Sum(Model.ForEach(players, i => choose[i] * choose[i])) == rosterSlots.Sum(rs => rs.Value));
+            model.AddConstraint("chosen", Model.Sum(Model.ForEach(players, i => choose[i])) == rosterSlots.Sum(rs => rs.Value));
 
             // right number at each position.
             foreach (var slot in rosterSlots)
             {
-                var posParam = positionParameters[slot.Key];
-                var posTerm = Model.ForEachWhere(players, i => choose[i], p => posParam[p] == 1);
-                model.AddConstraint("pos_" + slot.Key, Model.Sum(posTerm) == slot.Value);
+                var pos1Term = Model.ForEachWhere(players, i => choose[i], p => pos1[p] == slot.Key);
+                //var pos2Term = Model.ForEachWhere(players, i => choose[i], p => pos2[p] == slot.Key);
+                //var posTerm = Model.Or(pos1Term, pos2Term);
+                //var posTerm = Model.ForEachWhere(players, i => choose[i], p => pos1[p] == slot.Key || pos2[p] == slot.Key);
+                model.AddConstraint("pos_" + slot.Key, Model.Sum(pos1Term) == slot.Value);
             }
 
             // within the salary cap
@@ -74,7 +51,7 @@ namespace DfsSolver
             if (solution.Quality == SolverQuality.Infeasible ||
                 solution.Quality == SolverQuality.InfeasibleOrUnbounded)
             {
-                Log("No Solution!");
+                Log("No Solution!" + solution.Quality);
                 return;
             }
             context.PropagateDecisions();

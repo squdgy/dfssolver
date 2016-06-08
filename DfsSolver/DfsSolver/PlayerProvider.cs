@@ -1,47 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DfsSolver
 {
     public class PlayerProvider
     {
-        public static Position[] RosterPositions = new Position[]
-        {
-            new Position {Id = 1, Name = "P"},
-            new Position {Id = 2, Name = "C"},
-            new Position {Id = 3, Name = "1B"},
-            new Position {Id = 4, Name = "2B"},
-            new Position {Id = 5, Name = "3B"},
-            new Position {Id = 6, Name = "SS"},
-            new Position {Id = 7, Name = "LF"},
-            new Position {Id = 8, Name = "CF"},
-            new Position {Id = 9, Name = "RF"}
-        };
-
-        public static IEnumerable<Player> GetPlayersRandom()
+        public static IEnumerable<Player> GetPlayersRandom(List<Position> positions)
         {
             var random = new Random();
             var players = new List<Player>();
             var id = 1;
-            foreach (var rosterPosition in RosterPositions)
+            foreach (var position1 in positions)
             {
-                var numPlayers = random.Next(4,6);
+                var numPlayers = random.Next(15,16);
                 for (var i = 0; i< numPlayers; i++)
                 {
                     var name = $"Joe_{id} Player";
                     var salary = random.Next(3000, 8000);
                     var projectedPoints = random.Next(0, 30);
-                    var positions = new HashSet<string>();
-                    positions.Add(rosterPosition.Name);
+                    var playerPositions = new List<Position> {position1};
                     var hasSecondPosition = random.Next(0, 2) == 1;
                     if (hasSecondPosition)
-                        positions.Add(RosterPositions[random.Next(0, 9)].Name);
+                    {
+                        var position2 = 
+                            positions[random.Next(positions.Min(rs => rs.Id) - 1, positions.Max(rs => rs.Id))];
+                        if (position2.Id != position1.Id)
+                            playerPositions.Add(position2);
+                    }
                     players.Add(new Player
                     {
                         Id = id++,
                         Name = name,
                         ProjectedPoints = projectedPoints,
-                        Positions = positions,
+                        Positions = playerPositions,
                         Salary = salary
                     });
                 }

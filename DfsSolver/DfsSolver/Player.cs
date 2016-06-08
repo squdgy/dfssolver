@@ -8,33 +8,23 @@ namespace DfsSolver
 	{
 		public int Id { get; internal set; }
 		public string Name { get; internal set; }
-		public HashSet<string> Positions { get; internal set; }
 		public int ProjectedPoints { get; internal set; }
 		public int Salary { get; internal set; }
 
+        public List<Position> Positions { get; internal set; }
+        public int PositionId1 => Positions.Count >= 1 ? Positions[0].Id : 0;
+        public int PositionId2 => Positions.Count >= 2 ? Positions[1].Id : 0;
+
         // used for solver Decision binding
         public double Chosen { get; set; }
-
-        // used for solver Parameter binding
-        public double IsPitcherVal => Positions.Contains("P") ? 1 : 0;
-	    public double IsCatcherVal => Positions.Contains("C") ? 1 : 0;
-	    public double Is1BVal => Positions.Contains("1B") ? 1 : 0;
-	    public double Is2BVal => Positions.Contains("2B") ? 1 : 0;
-	    public double Is3BVal => Positions.Contains("3B") ? 1 : 0;
-	    public double IsSSVal => Positions.Contains("SS") ? 1 : 0;
-	    public double IsLFVal => Positions.Contains("LF") ? 1 : 0;
-	    public double IsCFVal => Positions.Contains("CF") ? 1 : 0;
-	    public double IsRFVal => Positions.Contains("RF") ? 1 : 0;
-
 	    public bool IsChosen => Chosen == 1;
 
 	    public override string ToString()
 	    {
 	        var positions = "";
 	        foreach (var pos in Positions)
-	            positions += pos + ",";
-	        var selectedPos = "";
-            return $"{selectedPos} {Salary} {ProjectedPoints} {Name} {positions}";
+	            positions += $"{pos.Name}({pos.Id}) ";
+            return $"{Salary} {ProjectedPoints} {Name} {positions}";
 		}
 	}
 }
