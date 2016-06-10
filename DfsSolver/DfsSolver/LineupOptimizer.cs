@@ -12,7 +12,6 @@ namespace DfsSolver
         {
             // deal with pre filled slots
             var prefilled = playerPool.Where(p => p.IsDrafted).ToList();
-            var availablePlayers = playerPool.Except(prefilled).ToList();
             var unfilledCap = salaryCap - prefilled.Sum(p => p.Salary);
             var unfilledSlots = new Dictionary<int, int>();
             foreach (var slot in lineupSlots)
@@ -21,6 +20,12 @@ namespace DfsSolver
                 var newCountForSlot = slot.Value - prefilledCount;
                 if (newCountForSlot > 0) unfilledSlots.Add(slot.Key, newCountForSlot);
             }
+            var unfilledPosIds = unfilledSlots.Select(ls => ls.Key).ToList();
+
+            // trim the draft pool by removing prefilled players
+            // and those whose draft positions don't need to be filled
+            var availablePlayers = playerPool.Except(prefilled).Where(
+                    p => unfilledPosIds.Contains(p.PositionId1) || unfilledPosIds.Contains(p.PositionId2)).ToList();
 
             var context = SolverContext.GetContext();
             var model = context.CreateModel();
@@ -74,7 +79,7 @@ namespace DfsSolver
                 return;
             }
             context.PropagateDecisions();
-            ReportSolution(prefilled, availablePlayers);
+            ReportSolution(playerPool, prefilled, availablePlayers);
         }
 
         private static Parameter CreateAndBindParameter(IEnumerable<Player> playerData, Model model, Set players, string bindingProperty)
@@ -85,18 +90,22 @@ namespace DfsSolver
             return param;
         }
 
-        private static void ReportSolution(ICollection<Player> prefilled, ICollection<Player> playerData)
+        private static void ReportSolution(ICollection<Player> playerPool, ICollection<Player> prefilled, ICollection<Player> available)
         {
-            Log("========================================");
+            Log("====================================================");
             Log($"Pre-filled players: {prefilled.Count}");
+            Log("=========================================");
             foreach (var s in prefilled)
             {
                 Log(s.ToString());
             }
-            Log("========================================");
+            Log("=========================================");
 
-            var selected = prefilled.Union(playerData.Where(p => p.IsDrafted)).OrderBy(p => p.DraftPositionId);
-            Log($"Available Player Pool (after prefilling): {playerData.Count} total:");
+            var selected = prefilled.Union(playerPool.Where(p => p.IsDrafted)).OrderBy(p => p.DraftPositionId);
+            Log($"Player Pool Size: {playerPool.Count}, After prefill exclusions: {available.Count}");
+            Log("====================================================");
+            Log("Lineup");
+            Log("======");
             var totalProjectedPoints = 0m;
             var totalSalary = 0;
             foreach (var s in selected)
@@ -105,7 +114,9 @@ namespace DfsSolver
                 totalSalary += s.Salary;
                 Log(s.ToString());
             }
+            Log("=========================================");
             Log($"Projected Points: {totalProjectedPoints}, Used Salary: {totalSalary}");
+            Log("====================================================");
         }
 
         private static void Log(string text)

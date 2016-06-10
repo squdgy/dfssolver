@@ -40,7 +40,7 @@ namespace DfsSolver
             }
 
             // randomly prefill n players
-            var n = random.Next(0, positions.Count + 1);
+            var n = random.Next(1, positions.Count + 1);
             for (var i = 0; i < n; i++)
             {
                 var position = positions[i];
