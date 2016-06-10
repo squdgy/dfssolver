@@ -13,7 +13,7 @@ namespace DfsSolver
             var id = 1;
             foreach (var position1 in positions)
             {
-                var numPlayers = random.Next(3,5);
+                var numPlayers = random.Next(6,7);
                 for (var i = 0; i< numPlayers; i++)
                 {
                     var name = $"Joe_{id} Player";

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace DfsSolver
@@ -43,9 +44,16 @@ namespace DfsSolver
 
         private static void Main()
         {
-            var positions = MLBPositions.ToList();
-            var playerPool = PlayerProvider.GetPlayersRandom(positions).ToList();
-            LineupOptimizer.Solve(playerPool.ToList(), MLBDraftPositions, 50000);
+            var sport = "MLB";
+            switch (sport)
+            {
+                case "MLB":
+                    LineupOptimizer.Solve(PlayerProvider.GetPlayersRandom(MLBPositions.ToList()).ToList(), MLBDraftPositions, 50000);
+                    return;
+                case "NAS":
+                    LineupOptimizer.Solve(PlayerProvider.GetPlayersRandom(NASPositions.ToList()).ToList(), NASDraftPositions, 48000);
+                    return;
+            }
         }
     }
 }
