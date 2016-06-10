@@ -34,24 +34,24 @@ namespace DfsSolver
             };
 
         public static Position[] NASPositions = {
-            new Position {Id = 500, Name = "D"}
+            new Position {Id = 39, Name = "D"}
         };
         private static readonly Dictionary<int, int> NASDraftPositions = new Dictionary<int, int>
         {
-            {500, 6}
+            {39, 6}
         };
 
 
         private static void Main()
         {
-            var sport = "MLB";
+            var sport = "NAS";
             switch (sport)
             {
                 case "MLB":
                     LineupOptimizer.Solve(PlayerProvider.GetPlayersRandom(MLBPositions.ToList()).ToList(), MLBDraftPositions, 50000);
                     return;
                 case "NAS":
-                    LineupOptimizer.Solve(PlayerProvider.GetPlayersRandom(NASPositions.ToList()).ToList(), NASDraftPositions, 48000);
+                    LineupOptimizer.Solve(PlayerProvider.GetPlayersRandom(NASPositions.ToList()).ToList(), NASDraftPositions, 50000);
                     return;
             }
         }
