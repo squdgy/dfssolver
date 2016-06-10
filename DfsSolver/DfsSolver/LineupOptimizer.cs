@@ -19,7 +19,6 @@ namespace DfsSolver
             var projectedPoints = CreateAndBindParameter(playerData, model, players, "ProjectedPointsAsInt");
             var position1 = CreateAndBindParameter(playerData, model, players, "PositionId1");
             var position2 = CreateAndBindParameter(playerData, model, players, "PositionId2");
-            var drafted = CreateAndBindParameter(playerData, model, players, "IsDrafted");
 
             // ---- Define Decisions ----
             // Choose the selected position id for the player; 0 implies not drafted
@@ -47,11 +46,11 @@ namespace DfsSolver
             }
 
             // within the salary cap
-            model.AddConstraint("withinSalaryCap", Model.Sum(Model.ForEach(players, i => drafted[i] * salary[i])) <= salaryCap);
+            model.AddConstraint("withinSalaryCap", Model.Sum(Model.ForEach(players, i => Model.If(chooseP[i] > 0, salary[i], 0))) <= salaryCap);
 
             // ---- Define the Goal ----
             // maximize for projectedPoints
-            model.AddGoal("maxPoints", GoalKind.Maximize, Model.Sum(Model.ForEach(players, i => drafted[i] * projectedPoints[i])));
+            model.AddGoal("maxPoints", GoalKind.Maximize, Model.Sum(Model.ForEach(players, i => Model.If(chooseP[i] > 0, projectedPoints[i], 0))));
 
             // Find that lineup
             var solution = context.Solve();

@@ -18,6 +18,8 @@ namespace DfsSolver
         // used for solver Decision binding
         public int ProjectedPointsAsInt => (int)(ProjectedPoints * 100);
         public double DraftPositionId { get; set; }
+
+        // used for reporting
 	    public bool IsDrafted => DraftPositionId > 0;
 
 	    public override string ToString()
