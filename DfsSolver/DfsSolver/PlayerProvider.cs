@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DfsSolver
 {
@@ -37,6 +38,16 @@ namespace DfsSolver
                     });
                 }
             }
+
+            // randomly prefill n players
+            var n = random.Next(0, positions.Count + 1);
+            for (var i = 0; i < n; i++)
+            {
+                var position = positions[i];
+                var eligiblePlayers = players.Where(p => p.Positions.Contains(position));
+                eligiblePlayers.First().DraftPositionId = position.Id;
+            }
+
             return players;
         }
     }

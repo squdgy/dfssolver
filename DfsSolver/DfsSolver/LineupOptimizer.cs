@@ -8,34 +8,46 @@ namespace DfsSolver
 {
     public class LineupOptimizer
     {
-        public static void Solve(IList<Player> playerData, Dictionary<int, int> lineupSlots, int salaryCap)
+        public static void Solve(IList<Player> playerPool, Dictionary<int, int> lineupSlots, int salaryCap)
         {
+            // deal with pre filled slots
+            var prefilled = playerPool.Where(p => p.IsDrafted).ToList();
+            var availablePlayers = playerPool.Except(prefilled).ToList();
+            var unfilledCap = salaryCap - prefilled.Sum(p => p.Salary);
+            var unfilledSlots = new Dictionary<int, int>();
+            foreach (var slot in lineupSlots)
+            {
+                var prefilledCount = prefilled.Count(p => p.DraftPositionId == slot.Key);
+                var newCountForSlot = slot.Value - prefilledCount;
+                if (newCountForSlot > 0) unfilledSlots.Add(slot.Key, newCountForSlot);
+            }
+
             var context = SolverContext.GetContext();
             var model = context.CreateModel();
             var players = new Set(Domain.Any, "players");
 
             // ---- Define Parameters ----
-            var salary = CreateAndBindParameter(playerData, model, players, "Salary");
-            var projectedPoints = CreateAndBindParameter(playerData, model, players, "ProjectedPointsAsInt");
-            var position1 = CreateAndBindParameter(playerData, model, players, "PositionId1");
-            var position2 = CreateAndBindParameter(playerData, model, players, "PositionId2");
+            var salary = CreateAndBindParameter(availablePlayers, model, players, "Salary");
+            var projectedPoints = CreateAndBindParameter(availablePlayers, model, players, "ProjectedPointsAsInt");
+            var position1 = CreateAndBindParameter(availablePlayers, model, players, "PositionId1");
+            var position2 = CreateAndBindParameter(availablePlayers, model, players, "PositionId2");
 
             // ---- Define Decisions ----
             // Choose the selected position id for the player; 0 implies not drafted
-            var positionIds = lineupSlots.Select(rs => rs.Key).ToList();
+            var positionIds = unfilledSlots.Select(rs => rs.Key).ToList();
             positionIds.Add(0);
             var chooseP = new Decision(Domain.Set(positionIds.ToArray()), "DraftPositionId", players);
-            chooseP.SetBinding(playerData, "DraftPositionId", "Id");
+            chooseP.SetBinding(availablePlayers, "DraftPositionId", "Id");
             model.AddDecision(chooseP);
 
             // ---- Define Constraints ----
             // reserve the right number to fill the lineup
-            var lineupSize = lineupSlots.Sum(rs => rs.Value);
+            var lineupSize = unfilledSlots.Sum(rs => rs.Value);
             Func<Term, Term> isDrafted = i => Model.If(chooseP[i] > 0, 1, 0);
             model.AddConstraint("drafted", Model.Sum(Model.ForEach(players, isDrafted)) == lineupSize);
 
             // right number at each position.
-            foreach (var slot in lineupSlots)
+            foreach (var slot in unfilledSlots)
             {
                 var positionId = slot.Key;
                 var positionCount = slot.Value;
@@ -46,7 +58,7 @@ namespace DfsSolver
             }
 
             // within the salary cap
-            model.AddConstraint("withinSalaryCap", Model.Sum(Model.ForEach(players, i => Model.If(chooseP[i] > 0, salary[i], 0))) <= salaryCap);
+            model.AddConstraint("withinSalaryCap", Model.Sum(Model.ForEach(players, i => Model.If(chooseP[i] > 0, salary[i], 0))) <= unfilledCap);
 
             // ---- Define the Goal ----
             // maximize for projectedPoints
@@ -62,7 +74,7 @@ namespace DfsSolver
                 return;
             }
             context.PropagateDecisions();
-            ReportSolution(playerData);
+            ReportSolution(prefilled, availablePlayers);
         }
 
         private static Parameter CreateAndBindParameter(IEnumerable<Player> playerData, Model model, Set players, string bindingProperty)
@@ -73,11 +85,18 @@ namespace DfsSolver
             return param;
         }
 
-        private static void ReportSolution(ICollection<Player> playerData)
+        private static void ReportSolution(ICollection<Player> prefilled, ICollection<Player> playerData)
         {
-            var selected = playerData.Where(p => p.IsDrafted).OrderBy(p => p.DraftPositionId);
+            Log("========================================");
+            Log($"Pre-filled players: {prefilled.Count}");
+            foreach (var s in prefilled)
+            {
+                Log(s.ToString());
+            }
+            Log("========================================");
 
-            Log($"Player Pool: {playerData.Count} total:");
+            var selected = prefilled.Union(playerData.Where(p => p.IsDrafted)).OrderBy(p => p.DraftPositionId);
+            Log($"Available Player Pool (after prefilling): {playerData.Count} total:");
             var totalProjectedPoints = 0m;
             var totalSalary = 0;
             foreach (var s in selected)
