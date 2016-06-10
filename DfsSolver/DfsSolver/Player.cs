@@ -16,15 +16,20 @@ namespace DfsSolver
         public int PositionId2 => Positions.Count >= 2 ? Positions[1].Id : 0;
 
         // used for solver Decision binding
-        public double Chosen { get; set; }
-	    public bool IsChosen => Chosen == 1;
+        public double DraftPositionId { get; set; }
+	    public bool IsDrafted => DraftPositionId > 0;
 
 	    public override string ToString()
 	    {
 	        var positions = "";
+	        var draftPosition = "";
 	        foreach (var pos in Positions)
-	            positions += $"{pos.Name}({pos.Id}) ";
-            return $"{Salary} {ProjectedPoints} {Name} {positions}";
+	        {
+	            positions += pos + " ";
+	            if (DraftPositionId == pos.Id)
+	                draftPosition = pos.ToString();
+	        }
+            return $"{Salary} {draftPosition} {ProjectedPoints} {Name} {positions}";
 		}
 	}
 }
