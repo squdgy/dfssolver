@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace DfsSolver
@@ -44,7 +43,7 @@ namespace DfsSolver
 
         private static void Main()
         {
-            var sport = "NAS";
+            var sport = "MLB";
             switch (sport)
             {
                 case "MLB":

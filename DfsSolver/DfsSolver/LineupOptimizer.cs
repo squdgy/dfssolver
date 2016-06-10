@@ -16,16 +16,16 @@ namespace DfsSolver
 
             // ---- Define Parameters ----
             var salary = CreateAndBindParameter(playerData, model, players, "Salary");
-            var projectedPoints = CreateAndBindParameter(playerData, model, players, "ProjectedPoints");
+            var projectedPoints = CreateAndBindParameter(playerData, model, players, "ProjectedPointsAsInt");
             var position1 = CreateAndBindParameter(playerData, model, players, "PositionId1");
             var position2 = CreateAndBindParameter(playerData, model, players, "PositionId2");
             var drafted = CreateAndBindParameter(playerData, model, players, "IsDrafted");
 
             // ---- Define Decisions ----
             // Choose the selected position id for the player; 0 implies not drafted
-            var posIds = lineupSlots.Select(rs => rs.Key).ToList();
-            posIds.Add(0);
-            var chooseP = new Decision(Domain.Set(posIds.ToArray()), "DraftPositionId", players);
+            var positionIds = lineupSlots.Select(rs => rs.Key).ToList();
+            positionIds.Add(0);
+            var chooseP = new Decision(Domain.Set(positionIds.ToArray()), "DraftPositionId", players);
             chooseP.SetBinding(playerData, "DraftPositionId", "Id");
             model.AddDecision(chooseP);
 
@@ -79,7 +79,7 @@ namespace DfsSolver
             var selected = playerData.Where(p => p.IsDrafted).OrderBy(p => p.DraftPositionId);
 
             Log($"Player Pool: {playerData.Count} total:");
-            var totalProjectedPoints = 0;
+            var totalProjectedPoints = 0m;
             var totalSalary = 0;
             foreach (var s in selected)
             {

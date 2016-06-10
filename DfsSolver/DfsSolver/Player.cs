@@ -8,7 +8,7 @@ namespace DfsSolver
 	{
 		public int Id { get; internal set; }
 		public string Name { get; internal set; }
-		public int ProjectedPoints { get; internal set; }
+	    public decimal ProjectedPoints { get; set; }
 		public int Salary { get; internal set; }
 
         public List<Position> Positions { get; internal set; }
@@ -16,6 +16,7 @@ namespace DfsSolver
         public int PositionId2 => Positions.Count >= 2 ? Positions[1].Id : 0;
 
         // used for solver Decision binding
+        public int ProjectedPointsAsInt => (int)(ProjectedPoints * 100);
         public double DraftPositionId { get; set; }
 	    public bool IsDrafted => DraftPositionId > 0;
 
