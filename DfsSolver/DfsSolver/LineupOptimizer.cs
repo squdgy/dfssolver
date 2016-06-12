@@ -8,7 +8,30 @@ namespace DfsSolver
 {
     public class LineupOptimizer
     {
-        public static void Solve(IList<Player> playerPool, Dictionary<int, int> lineupSlots, int salaryCap)
+        private readonly int _timeoutInMilliseconds;
+
+        /// <summary>
+        /// Whether or not the returned solution was optimal or a result of a timeout
+        /// </summary>
+        public bool IsOptimal { get; set; }
+
+        /// <summary>
+        /// Create a lineup optimizer object
+        /// </summary>
+        /// <param name="timeOutInMilliseconds">If optimal solution not found after this timeout, find the best one so far</param>
+        public LineupOptimizer(int timeOutInMilliseconds = 30000)
+        {
+            _timeoutInMilliseconds = timeOutInMilliseconds;
+        }
+
+        /// <summary>
+        /// Returns list of selected players
+        /// </summary>
+        /// <param name="playerPool">all possible players, preselected ones set with the DraftPositionId != 0</param>
+        /// <param name="lineupSlots">dictionary of position ids to 3 of players allowed in that position</param>
+        /// <param name="salaryCap">maximum amount to spend</param>
+        /// <returns>The players that are selected by the solver</returns>
+        public IList<Player> Solve(IList<Player> playerPool, Dictionary<int, int> lineupSlots, int salaryCap)
         {
             // deal with pre filled slots
             var prefilled = playerPool.Where(p => p.IsDrafted).ToList();
@@ -70,16 +93,23 @@ namespace DfsSolver
             model.AddGoal("maxPoints", GoalKind.Maximize, Model.Sum(Model.ForEach(players, i => Model.If(chooseP[i] > 0, projectedPoints[i], 0))));
 
             // Find that lineup
-            var solution = context.Solve();
+            var directive = new Directive
+            {
+                TimeLimit = _timeoutInMilliseconds
+            };
+            var solution = context.Solve(directive);
+            IsOptimal = solution.Quality == 
+                SolverQuality.LocalOptimal || solution.Quality == SolverQuality.Optimal;
+
             Log(solution.GetReport().ToString());
             if (solution.Quality == SolverQuality.Infeasible ||
                 solution.Quality == SolverQuality.InfeasibleOrUnbounded)
             {
                 Log("No Solution!" + solution.Quality);
-                return;
+                return null;
             }
             context.PropagateDecisions();
-            ReportSolution(playerPool, prefilled, availablePlayers);
+            return ReportSolution(playerPool, prefilled, availablePlayers);
         }
 
         private static Parameter CreateAndBindParameter(IEnumerable<Player> playerData, Model model, Set players, string bindingProperty)
@@ -90,7 +120,7 @@ namespace DfsSolver
             return param;
         }
 
-        private static void ReportSolution(ICollection<Player> playerPool, ICollection<Player> prefilled, ICollection<Player> available)
+        private static IList<Player> ReportSolution(ICollection<Player> playerPool, ICollection<Player> prefilled, ICollection<Player> available)
         {
             Log("====================================================");
             Log($"Pre-filled players: {prefilled.Count}");
@@ -117,6 +147,8 @@ namespace DfsSolver
             Log("=========================================");
             Log($"Projected Points: {totalProjectedPoints}, Used Salary: {totalSalary}");
             Log("====================================================");
+
+            return selected.ToList();
         }
 
         private static void Log(string text)

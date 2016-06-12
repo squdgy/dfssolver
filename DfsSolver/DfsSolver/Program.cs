@@ -44,13 +44,14 @@ namespace DfsSolver
         private static void Main()
         {
             var sport = "MLB";
+            var lineupOptimizer = new LineupOptimizer();
             switch (sport)
             {
                 case "MLB":
-                    LineupOptimizer.Solve(PlayerProvider.GetPlayersRandom(MLBPositions.ToList()).ToList(), MLBDraftPositions, 50000);
+                    lineupOptimizer.Solve(PlayerProvider.GetPlayersRandom(MLBPositions.ToList()).ToList(), MLBDraftPositions, 50000);
                     return;
                 case "NAS":
-                    LineupOptimizer.Solve(PlayerProvider.GetPlayersRandom(NASPositions.ToList()).ToList(), NASDraftPositions, 50000);
+                    lineupOptimizer.Solve(PlayerProvider.GetPlayersRandom(NASPositions.ToList()).ToList(), NASDraftPositions, 50000);
                     return;
             }
         }
