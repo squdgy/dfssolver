@@ -7,37 +7,37 @@ namespace DfsSolver
     {
         // map position id to position name
         public static Position[] MLBPositions = {
-            new Position {Id = 1, Name = "P"},
-            new Position {Id = 2, Name = "C"},
-            new Position {Id = 3, Name = "1B"},
-            new Position {Id = 4, Name = "2B"},
-            new Position {Id = 5, Name = "3B"},
-            new Position {Id = 6, Name = "SS"},
-            new Position {Id = 7, Name = "LF"},
-            new Position {Id = 8, Name = "CF"},
-            new Position {Id = 9, Name = "RF"}
+            new Position {Id = 10, Name = "P"},
+            new Position {Id = 20, Name = "C"},
+            new Position {Id = 30, Name = "1B"},
+            new Position {Id = 40, Name = "2B"},
+            new Position {Id = 50, Name = "3B"},
+            new Position {Id = 60, Name = "SS"},
+            new Position {Id = 70, Name = "LF"},
+            new Position {Id = 80, Name = "CF"},
+            new Position {Id = 90, Name = "RF"}
         };
 
         // map positionId to number of draft positions to fill for that position
         private static readonly Dictionary<int, int> MLBDraftPositions = new Dictionary<int, int>
             {
-                { 1, 2 }, //P
-                { 2, 1 }, //C
-                { 3, 1 }, //1B
-                { 4, 1 }, //2B
-                { 5, 1 }, //3B
-                { 6, 1 }, //SS
-                { 7, 1 }, //LF
-                { 8, 1 }, //CF
-                { 9, 1 }  //RF
+                { 10, 2 }, //P
+                { 20, 1 }, //C
+                { 30, 1 }, //1B
+                { 40, 1 }, //2B
+                { 50, 1 }, //3B
+                { 60, 1 }, //SS
+                { 70, 1 }, //LF
+                { 80, 1 }, //CF
+                { 90, 1 }  //RF
             };
 
         public static Position[] NASPositions = {
-            new Position {Id = 39, Name = "D"}
+            new Position {Id = 400, Name = "D"}
         };
         private static readonly Dictionary<int, int> NASDraftPositions = new Dictionary<int, int>
         {
-            {39, 6}
+            {400, 6}
         };
 
 

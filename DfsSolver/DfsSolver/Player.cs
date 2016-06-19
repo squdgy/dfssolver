@@ -20,7 +20,7 @@ namespace DfsSolver
         public double DraftPositionId { get; set; }
 
         // used for reporting
-	    public bool IsDrafted => DraftPositionId > 0;
+	    public bool IsDrafted => DraftPositionId > 0 && (DraftPositionId == PositionId1 || DraftPositionId == PositionId2);
 
 	    public override string ToString()
 	    {

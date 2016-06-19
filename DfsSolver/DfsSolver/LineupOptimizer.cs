@@ -50,6 +50,8 @@ namespace DfsSolver
             var availablePlayers = playerPool.Except(prefilled).Where(
                     p => unfilledPosIds.Contains(p.PositionId1) || unfilledPosIds.Contains(p.PositionId2)).ToList();
 
+            var posMapping = DenormalizePositions(availablePlayers, unfilledPosIds);
+
             var context = SolverContext.GetContext();
             var model = context.CreateModel();
             var players = new Set(Domain.Any, "players");
@@ -62,9 +64,7 @@ namespace DfsSolver
 
             // ---- Define Decisions ----
             // Choose the selected position id for the player; 0 implies not drafted
-            var positionIds = unfilledSlots.Select(rs => rs.Key).ToList();
-            positionIds.Add(0);
-            var chooseP = new Decision(Domain.Set(positionIds.ToArray()), "DraftPositionId", players);
+            var chooseP = new Decision(Domain.IntegerRange(0, unfilledSlots.Count), "DraftPositionId", players);
             chooseP.SetBinding(availablePlayers, "DraftPositionId", "Id");
             model.AddDecision(chooseP);
 
@@ -77,12 +77,12 @@ namespace DfsSolver
             // right number at each position.
             foreach (var slot in unfilledSlots)
             {
-                var positionId = slot.Key;
-                var positionCount = slot.Value;
-                Func<Term, Term> isDraftedValues = i => Model.If(chooseP[i] == positionId, 1, 0);
-                Func<Term, Term> isEligibleAtPosition = p => position2[p] == positionId | position1[p] == positionId;
+                var normalizedPosId = posMapping[slot.Key];
+                var posCount = slot.Value;
+                Func<Term, Term> isDraftedValues = i => Model.If(chooseP[i] == normalizedPosId, 1, 0);
+                Func<Term, Term> isEligibleAtPosition = p => position2[p] == normalizedPosId | position1[p] == normalizedPosId;
                 var pos1Term = Model.ForEachWhere(players, isDraftedValues, isEligibleAtPosition);
-                model.AddConstraint("pos_" + positionId, Model.Sum(pos1Term) == positionCount);
+                model.AddConstraint("pos_" + normalizedPosId, Model.Sum(pos1Term) == posCount);
             }
 
             // within the salary cap
@@ -109,7 +109,50 @@ namespace DfsSolver
                 return null;
             }
             context.PropagateDecisions();
-            return ReportSolution(playerPool, prefilled, availablePlayers);
+            NormalizePositionIds(availablePlayers, unfilledPosIds);
+            return ReportSolution(playerPool, prefilled, availablePlayers, lineupSlots.Sum(ls => ls.Value));
+        }
+
+        private Dictionary<int, int> DenormalizePositions(List<Player> players, List<int> positionIds)
+        {
+            var posMapping = new Dictionary<int, int>();
+            for (var i = 0; i < positionIds.Count; i++)
+            {
+                posMapping.Add(positionIds[i], i+1);
+            }
+
+            foreach (var player in players)
+            {
+                var pos1 = player.PositionId1;
+                var pos2 = player.PositionId2;
+                if (posMapping.ContainsKey(pos1))
+                    player.Positions[0].Id = posMapping[pos1];
+                if (posMapping.ContainsKey(pos2))
+                    player.Positions[1].Id = posMapping[pos2];
+            }
+            return posMapping;
+        }
+
+        private void NormalizePositionIds(List<Player> players, List<int> positionIds)
+        {
+            var posMapping = new Dictionary<int, int>();
+            for (var i = 0; i < positionIds.Count; i++)
+            {
+                posMapping.Add(i+1, positionIds[i]);
+            }
+
+            foreach (var player in players)
+            {
+                var pos1 = player.PositionId1;
+                var pos2 = player.PositionId2;
+                var draftPos = (int)player.DraftPositionId;
+                if (posMapping.ContainsKey(pos1))
+                    player.Positions[0].Id = posMapping[pos1];
+                if (posMapping.ContainsKey(pos2))
+                    player.Positions[1].Id = posMapping[pos2];
+                if (posMapping.ContainsKey(draftPos))
+                    player.DraftPositionId = posMapping[draftPos];
+            }
         }
 
         private static Parameter CreateAndBindParameter(IEnumerable<Player> playerData, Model model, Set players, string bindingProperty)
@@ -120,7 +163,8 @@ namespace DfsSolver
             return param;
         }
 
-        private static IList<Player> ReportSolution(ICollection<Player> playerPool, ICollection<Player> prefilled, ICollection<Player> available)
+        private static IList<Player> ReportSolution(ICollection<Player> playerPool, 
+            ICollection<Player> prefilled, ICollection<Player> available, int lineupSize)
         {
             Log("====================================================");
             Log($"Pre-filled players: {prefilled.Count}");
@@ -132,10 +176,11 @@ namespace DfsSolver
             Log("=========================================");
 
             var selected = prefilled.Union(playerPool.Where(p => p.IsDrafted)).OrderBy(p => p.DraftPositionId);
+            var solutionText = lineupSize == selected.Count() ? "Filled" : "Partial";
             Log($"Player Pool Size: {playerPool.Count}, After prefill exclusions: {available.Count}");
             Log("====================================================");
-            Log("Lineup");
-            Log("======");
+            Log($"Lineup - {solutionText}");
+            Log("========================");
             var totalProjectedPoints = 0m;
             var totalSalary = 0;
             foreach (var s in selected)
