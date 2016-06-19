@@ -9,6 +9,8 @@ namespace DfsSolver
     public class LineupOptimizer
     {
         private readonly int _timeoutInMilliseconds;
+        private Stopwatch _stopwatch;
+        private int _validLineupsFound;
 
         /// <summary>
         /// Whether or not the returned solution was optimal or a result of a timeout
@@ -19,7 +21,7 @@ namespace DfsSolver
         /// Create a lineup optimizer object
         /// </summary>
         /// <param name="timeOutInMilliseconds">If optimal solution not found after this timeout, find the best one so far</param>
-        public LineupOptimizer(int timeOutInMilliseconds = 30000)
+        public LineupOptimizer(int timeOutInMilliseconds = 15000)
         {
             _timeoutInMilliseconds = timeOutInMilliseconds;
         }
@@ -53,6 +55,7 @@ namespace DfsSolver
             var posMapping = DenormalizePositions(availablePlayers, unfilledPosIds);
 
             var context = SolverContext.GetContext();
+            context.Solving += Solving;
             var model = context.CreateModel();
             var players = new Set(Domain.Any, "players");
 
@@ -88,15 +91,18 @@ namespace DfsSolver
             // within the salary cap
             model.AddConstraint("withinSalaryCap", Model.Sum(Model.ForEach(players, i => Model.If(chooseP[i] > 0, salary[i], 0))) <= unfilledCap);
 
-            // ---- Define the Goal ----
+            // ---- Define thde Goal ----
             // maximize for projectedPoints
             model.AddGoal("maxPoints", GoalKind.Maximize, Model.Sum(Model.ForEach(players, i => Model.If(chooseP[i] > 0, projectedPoints[i], 0))));
 
             // Find that lineup
-            var directive = new Directive
+            var directive = new HybridLocalSearchDirective()
             {
+                RunUntilTimeout = true,
                 TimeLimit = _timeoutInMilliseconds
             };
+            _stopwatch = new Stopwatch();
+            _stopwatch.Start();
             var solution = context.Solve(directive);
             IsOptimal = solution.Quality == 
                 SolverQuality.LocalOptimal || solution.Quality == SolverQuality.Optimal;
@@ -110,7 +116,8 @@ namespace DfsSolver
             }
             context.PropagateDecisions();
             NormalizePositionIds(availablePlayers, unfilledPosIds);
-            return ReportSolution(playerPool, prefilled, availablePlayers, lineupSlots.Sum(ls => ls.Value));
+            return ReportSolution(playerPool, prefilled, availablePlayers, 
+                lineupSlots.Sum(ls => ls.Value), _validLineupsFound);
         }
 
         private Dictionary<int, int> DenormalizePositions(List<Player> players, List<int> positionIds)
@@ -164,7 +171,8 @@ namespace DfsSolver
         }
 
         private static IList<Player> ReportSolution(ICollection<Player> playerPool, 
-            ICollection<Player> prefilled, ICollection<Player> available, int lineupSize)
+            ICollection<Player> prefilled, ICollection<Player> available, int lineupSize,
+            int validLinesupsFound)
         {
             Log("====================================================");
             Log($"Pre-filled players: {prefilled.Count}");
@@ -179,8 +187,8 @@ namespace DfsSolver
             var solutionText = lineupSize == selected.Count() ? "Filled" : "Partial";
             Log($"Player Pool Size: {playerPool.Count}, After prefill exclusions: {available.Count}");
             Log("====================================================");
-            Log($"Lineup - {solutionText}");
-            Log("========================");
+            Log($"Lineup - {solutionText} ({validLinesupsFound} possible lineups found)");
+            Log("====================================================");
             var totalProjectedPoints = 0m;
             var totalSalary = 0;
             foreach (var s in selected)
@@ -200,6 +208,13 @@ namespace DfsSolver
         {
             Console.WriteLine(text);
             Debug.WriteLine(text);
+        }
+
+        private void Solving(object sender, SolvingEventArgs e)
+        {
+            _validLineupsFound++;
+            if (_stopwatch.ElapsedMilliseconds > _timeoutInMilliseconds)
+                e.CancelAll();
         }
     }
 }
