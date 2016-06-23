@@ -20,8 +20,7 @@ namespace DfsSolver
                     var name = $"Joe_{id} Player";
                     var salary = random.Next(3000, 8000);
                     var projectedPoints = random.Next(0, 30);
-                    var positions = new HashSet<string>();
-                    positions.Add(rosterPosition);
+                    var positions = new HashSet<string> {rosterPosition};
                     var hasSecondPosition = random.Next(0, 2) == 1;
                     if (hasSecondPosition)
                         positions.Add(RosterPositions[random.Next(0, 9)]);

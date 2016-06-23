@@ -8,53 +8,38 @@ namespace DfsSolver
 {
     public class LineupOptimizer
     {
-        public static void Solve(IList<Player> playerData)
+        public static IList<Player> Solve(IList<Player> playerPool, Dictionary<string, int> rosterSlots, int salaryCap)
         {
-            // Constants
-            const int salaryCap = 50000;
-            var rosterSlots = new Dictionary<string, int>
-            {
-                { "P", 2 },
-                { "C", 1 },
-                { "1B", 1 },
-                { "2B", 1 },
-                { "3B", 1 },
-                { "SS", 1 },
-                { "LF", 1 },
-                { "CF", 1 },
-                { "RF", 1 }
-            };
-
-            SolverContext context = SolverContext.GetContext();
-            Model model = context.CreateModel();
+            var context = SolverContext.GetContext();
+            var model = context.CreateModel();
             var players = new Set(Domain.Any, "players");
 
             // ---- Define Parameters ----
-            Parameter salary = CreateAndBindParameter(playerData, model, players, "Salary");
-            Parameter projectedPoints = CreateAndBindParameter(playerData, model, players, "ProjectedPoints");
+            var salary = CreateAndBindParameter(playerPool, model, players, "Salary");
+            var projectedPoints = CreateAndBindParameter(playerPool, model, players, "ProjectedPoints");
 
             // Positions
-            Parameter pitcher = CreateAndBindParameter(playerData, model, players, "IsPitcherVal");
-            Parameter catcher = CreateAndBindParameter(playerData, model, players, "IsCatcherVal");
-            Parameter firstBaseman = CreateAndBindParameter(playerData, model, players, "Is1BVal");
-            Parameter secondBaseman = CreateAndBindParameter(playerData, model, players, "Is2BVal");
-            Parameter thirdBaseman = CreateAndBindParameter(playerData, model, players, "Is3BVal");
-            Parameter shortstop = CreateAndBindParameter(playerData, model, players, "IsSSVal");
-            Parameter leftFielders = CreateAndBindParameter(playerData, model, players, "IsLFVal");
-            Parameter centerFielders = CreateAndBindParameter(playerData, model, players, "IsCFVal");
-            Parameter rightFielders = CreateAndBindParameter(playerData, model, players, "IsRFVal");
+            var pitcher = CreateAndBindParameter(playerPool, model, players, "IsPitcherVal");
+            var catcher = CreateAndBindParameter(playerPool, model, players, "IsCatcherVal");
+            var firstBaseman = CreateAndBindParameter(playerPool, model, players, "Is1BVal");
+            var secondBaseman = CreateAndBindParameter(playerPool, model, players, "Is2BVal");
+            var thirdBaseman = CreateAndBindParameter(playerPool, model, players, "Is3BVal");
+            var shortstop = CreateAndBindParameter(playerPool, model, players, "IsSSVal");
+            var leftFielders = CreateAndBindParameter(playerPool, model, players, "IsLFVal");
+            var centerFielders = CreateAndBindParameter(playerPool, model, players, "IsCFVal");
+            var rightFielders = CreateAndBindParameter(playerPool, model, players, "IsRFVal");
 
             // ---- Define Decisions ----
             // For each position, if player is choosen for that position, 1 if true, and 0 if false
-            Decision chooseP = CreateAndBindDecision(playerData, model, players, "ChosenPitcher");
-            Decision chooseC = CreateAndBindDecision(playerData, model, players, "ChosenCatcher");
-            Decision choose1B = CreateAndBindDecision(playerData, model, players, "Chosen1B");
-            Decision choose2B = CreateAndBindDecision(playerData, model, players, "Chosen2B");
-            Decision choose3B = CreateAndBindDecision(playerData, model, players, "Chosen3B");
-            Decision chooseSS = CreateAndBindDecision(playerData, model, players, "ChosenSS");
-            Decision chooseLF = CreateAndBindDecision(playerData, model, players, "ChosenLF");
-            Decision chooseCF = CreateAndBindDecision(playerData, model, players, "ChosenCF");
-            Decision chooseRF = CreateAndBindDecision(playerData, model, players, "ChosenRF");
+            var chooseP = CreateAndBindDecision(playerPool, model, players, "ChosenPitcher");
+            var chooseC = CreateAndBindDecision(playerPool, model, players, "ChosenCatcher");
+            var choose1B = CreateAndBindDecision(playerPool, model, players, "Chosen1B");
+            var choose2B = CreateAndBindDecision(playerPool, model, players, "Chosen2B");
+            var choose3B = CreateAndBindDecision(playerPool, model, players, "Chosen3B");
+            var chooseSS = CreateAndBindDecision(playerPool, model, players, "ChosenSS");
+            var chooseLF = CreateAndBindDecision(playerPool, model, players, "ChosenLF");
+            var chooseCF = CreateAndBindDecision(playerPool, model, players, "ChosenCF");
+            var chooseRF = CreateAndBindDecision(playerPool, model, players, "ChosenRF");
 
             // ---- Define Constraints ----
             // Reserve the right number of each position.
@@ -95,10 +80,10 @@ namespace DfsSolver
                 solution.Quality == SolverQuality.InfeasibleOrUnbounded)
             {
                 Log("No Solution!");
-                return;
+                return null;
             }
             context.PropagateDecisions();
-            ReportSolution(playerData);
+            return GetSolution(playerPool);
         }
 
         private static Decision CreateAndBindDecision(IEnumerable<Player> playerData, Model model, Set players, string bindingProperty)
@@ -117,11 +102,11 @@ namespace DfsSolver
             return param;
         }
 
-        private static void ReportSolution(IList<Player> playerData)
+        private static IList<Player> GetSolution(ICollection<Player> playerPool)
         {
-            var selected = playerData.Where(p => p.Chosen);
+            var selected = playerPool.Where(p => p.Chosen).ToList();
 
-            Log($"Player Pool: {playerData.Count} total:");
+            Log($"Player Pool: {playerPool.Count} total:");
             var totalProjectedPoints = 0;
             var totalSalary = 0;
             foreach (var s in selected)
@@ -131,6 +116,7 @@ namespace DfsSolver
                 Log(s.ToString());
             }
             Log($"Projected Points: {totalProjectedPoints}, Used Salary: {totalSalary}");
+            return selected;
         }
 
         private static void Log(string text)
