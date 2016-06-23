@@ -9,9 +9,9 @@ namespace DfsSolver
 {
     public class LineupOptimizer
     {
-        public static Solution Solve(IList<Player> playerPool, Dictionary<string, int> lineupSlots, int salaryCap)
+        public static Solution Solve(IList<Player> playerPool, Dictionary<string, int> rosterSlots, int salaryCap)
         {
-
+ 
             var context = SolverContext.GetContext();
             var model = context.CreateModel();
             var players = new Set(Domain.Any, "players");
@@ -45,15 +45,15 @@ namespace DfsSolver
 
             // ---- Define Constraints ----
             // Reserve the right number of each position.
-            model.AddConstraint("pitchers", Model.Sum(Model.ForEach(players, i => chooseP[i] * pitcher[i])) == lineupSlots["P"]);
-            model.AddConstraint("catchers", Model.Sum(Model.ForEach(players, i => chooseC[i] * catcher[i])) == lineupSlots["C"]);
-            model.AddConstraint("first_basemen", Model.Sum(Model.ForEach(players, i => choose1B[i] * firstBaseman[i])) == lineupSlots["1B"]);
-            model.AddConstraint("second_basemen", Model.Sum(Model.ForEach(players, i => choose2B[i] * secondBaseman[i])) == lineupSlots["2B"]);
-            model.AddConstraint("third_basemen", Model.Sum(Model.ForEach(players, i => choose3B[i] * thirdBaseman[i])) == lineupSlots["3B"]);
-            model.AddConstraint("shortstop", Model.Sum(Model.ForEach(players, i => chooseSS[i] * shortstop[i])) == lineupSlots["SS"]);
-            model.AddConstraint("leftFielders", Model.Sum(Model.ForEach(players, i => chooseLF[i] * leftFielders[i])) == lineupSlots["LF"]);
-            model.AddConstraint("centerFielders", Model.Sum(Model.ForEach(players, i => chooseCF[i] * centerFielders[i])) == lineupSlots["CF"]);
-            model.AddConstraint("rightFielders", Model.Sum(Model.ForEach(players, i => chooseRF[i] * rightFielders[i])) == lineupSlots["RF"]);
+            model.AddConstraint("pitchers", Model.Sum(Model.ForEach(players, i => chooseP[i] * pitcher[i])) == rosterSlots["P"]);
+            model.AddConstraint("catchers", Model.Sum(Model.ForEach(players, i => chooseC[i] * catcher[i])) == rosterSlots["C"]);
+            model.AddConstraint("first_basemen", Model.Sum(Model.ForEach(players, i => choose1B[i] * firstBaseman[i])) == rosterSlots["1B"]);
+            model.AddConstraint("second_basemen", Model.Sum(Model.ForEach(players, i => choose2B[i] * secondBaseman[i])) == rosterSlots["2B"]);
+            model.AddConstraint("third_basemen", Model.Sum(Model.ForEach(players, i => choose3B[i] * thirdBaseman[i])) == rosterSlots["3B"]);
+            model.AddConstraint("shortstop", Model.Sum(Model.ForEach(players, i => chooseSS[i] * shortstop[i])) == rosterSlots["SS"]);
+            model.AddConstraint("leftFielders", Model.Sum(Model.ForEach(players, i => chooseLF[i] * leftFielders[i])) == rosterSlots["LF"]);
+            model.AddConstraint("centerFielders", Model.Sum(Model.ForEach(players, i => chooseCF[i] * centerFielders[i])) == rosterSlots["CF"]);
+            model.AddConstraint("rightFielders", Model.Sum(Model.ForEach(players, i => chooseRF[i] * rightFielders[i])) == rosterSlots["RF"]);
 
             // same player can't be in 2 roster spots at the same time
             model.AddConstraints("noMoreThanOnce", Model.ForEach(players, i =>
@@ -84,7 +84,7 @@ namespace DfsSolver
             Log(solution.GetReport().ToString());
             context.PropagateDecisions();
             var lineup = GetSolution(playerPool);
-            if (lineup.Count == lineupSlots.Sum(rs => rs.Value))
+            if (lineup.Count == rosterSlots.Sum(rs => rs.Value))
                 return new Solution
                 {
                     Lineup = lineup,
