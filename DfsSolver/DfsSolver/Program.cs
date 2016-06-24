@@ -25,13 +25,13 @@ namespace DfsSolver
             {
                 { "P", 2 }, //P
                 { "C", 1 }, //C
-                { "1B", 1 }, //1B
-                { "2B", 1 }, //2B
-                { "3B", 1 }, //3B
-                { "SS", 1 }, //SS
-                { "LF", 1 }, //LF
-                { "CF", 1 }, //CF
-                { "RF", 1 }  //RF
+                //{ "1B", 1 }, //1B
+                //{ "2B", 1 }, //2B
+                //{ "3B", 1 }, //3B
+                //{ "SS", 1 }, //SS
+                //{ "LF", 1 }, //LF
+                //{ "CF", 1 }, //CF
+                //{ "RF", 1 }  //RF
             };
 
         public static Position[] NASPositions = {
