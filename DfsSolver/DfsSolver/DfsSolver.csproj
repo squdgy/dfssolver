@@ -53,6 +53,7 @@
     <Compile Include="Player.cs" />
     <Compile Include="PlayerProvider.cs" />
     <Compile Include="Position.cs" />
+    <Compile Include="PositionHelper.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Solution.cs" />
