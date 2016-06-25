@@ -8,9 +8,9 @@ namespace DfsSolver
 {
 	public class Player
 	{
-	    private static string[] _allPositions;
+	    private readonly string[] _allPositions;
 
-	    internal static void SetPositions(string[] allPositions)
+        public Player(string[] allPositions)
 	    {
 	        _allPositions = allPositions;
 	    }

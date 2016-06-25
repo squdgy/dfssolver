@@ -10,10 +10,16 @@ namespace DfsSolver
 {
     public class LineupOptimizer
     {
+        /// <summary>
+        /// Generate an optimal lineup which maximizes for projected points
+        /// </summary>
+        /// <param name="playerPool">all players, including already selected ones</param>
+        /// <param name="lineupSlots">all lineup positions with the count of how many to draft</param>
+        /// <param name="salaryCap">salary cap for the contest</param>
+        /// <returns></returns>
         public static Solution Solve(IList<Player> playerPool, IList<LineupSlot> lineupSlots, int salaryCap)
         {
             // deal with pre filled slots
-            Player.SetPositions(lineupSlots.Select(ls => ls.Name).ToArray());
             var prefilled = playerPool.Where(p => p.Chosen).ToList();
             var availablePlayers = playerPool.Except(prefilled).ToList();
             var unfilledCap = salaryCap - prefilled.Sum(p => p.Salary);
