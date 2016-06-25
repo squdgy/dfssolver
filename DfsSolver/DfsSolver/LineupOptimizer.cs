@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-//using LpSolveNativeInterface;
+using LpSolveNativeInterface;
 using SolverFoundation.Plugin.LpSolve;
 
 namespace DfsSolver
@@ -12,27 +12,43 @@ namespace DfsSolver
     {
         public static Solution Solve(IList<Player> playerPool, IList<LineupSlot> lineupSlots, int salaryCap)
         {
+            // deal with pre filled slots
+            var prefilled = playerPool.Where(p => p.Chosen).ToList();
+            var availablePlayers = playerPool.Except(prefilled).ToList();
+            var unfilledCap = salaryCap - prefilled.Sum(p => p.Salary);
+            var unfilledSlots = new List<LineupSlot> ();
+            foreach (var slot in lineupSlots)
+            {
+                var prefilledCount = prefilled.Count(p => p.ChosenPosition == slot.Name);
+                var newCountForSlot = slot.Count - prefilledCount;
+                if (newCountForSlot > 0)
+                    unfilledSlots.Add(new LineupSlot
+                    {
+                        Name = slot.Name, Count = newCountForSlot
+                    });
+            }
+
             var positionHelpers = new List<PositionHelper>();
             var context = SolverContext.GetContext();
             var model = context.CreateModel();
             var players = new Set(Domain.Any, "players");
 
             // ---- Define Parameters and Decisions----
-            var salary = CreateAndBindParameter(playerPool, model, players, "Salary");
-            var projectedPoints = CreateAndBindParameter(playerPool, model, players, "ProjectedPoints");
+            var salary = CreateAndBindParameter(availablePlayers, model, players, "Salary");
+            var projectedPoints = CreateAndBindParameter(availablePlayers, model, players, "ProjectedPoints");
 
             // For each lineup position, define 1 param and 1 decision
             // the parameter value indicates whether or not the player is eligible to play at that lineup position
-            for (var i = 0; i < lineupSlots.Count; i++)
+            for (var i = 0; i < unfilledSlots.Count; i++)
             {
                 var decisionProp = $"ChosenAtPosition{i}";
                 var paramProp = $"EligibleAtPosition{i}";
                 positionHelpers.Add(new PositionHelper
                 {
-                    Decision = CreateAndBindDecision(playerPool, model, players, decisionProp),
-                    Parameter = CreateAndBindParameter(playerPool, model, players, paramProp),
-                    Name = lineupSlots[i].Name,
-                    Count = lineupSlots[i].Count
+                    Decision = CreateAndBindDecision(availablePlayers, model, players, decisionProp),
+                    Parameter = CreateAndBindParameter(availablePlayers, model, players, paramProp),
+                    Name = unfilledSlots[i].Name,
+                    Count = unfilledSlots[i].Count
                 });
             }
             var decisions = positionHelpers.Select(ph => ph.Decision).ToList();
@@ -54,7 +70,7 @@ namespace DfsSolver
             var sumOfSalaries = Model.Sum(
                 Model.ForEach(players, i => NumPositionsForPlayer(i, decisions) * salary[i])
             );
-            model.AddConstraint("withinSalaryCap", sumOfSalaries <= salaryCap);
+            model.AddConstraint("withinSalaryCap", sumOfSalaries <= unfilledCap);
 
             // ---- Define the Goal ----
             // maximize for projectedPoints
@@ -67,9 +83,9 @@ namespace DfsSolver
             var simplex = new LpSolveDirective
             {
                 TimeLimit = 10000, // timeout after 10 seconds
-                //LpSolveMsgFunc = LpSolveMsgFunc,
-                //LpSolveVerbose = 4,
-                //LpSolveLogFunc = LpSolveLogFunc
+                LpSolveMsgFunc = LpSolveMsgFunc,
+                LpSolveVerbose = 1,
+                LpSolveLogFunc = LpSolveLogFunc
             };
             var solution = context.Solve(simplex);
             Log(solution.GetReport().ToString());
@@ -108,15 +124,15 @@ namespace DfsSolver
             return sum.ToTerm();
         }
 
-        //private static void LpSolveLogFunc(int lp, int userhandle, string buffer)
-        //{
-        //    Log(buffer);
-        //}
+        private static void LpSolveLogFunc(int lp, int userhandle, string buffer)
+        {
+            Log(buffer);
+        }
 
-        //private static void LpSolveMsgFunc(int lp, int userhandle, lpsolve.lpsolve_msgmask message)
-        //{
-        //    Log("Msg: " + message);
-        //}
+        private static void LpSolveMsgFunc(int lp, int userhandle, lpsolve.lpsolve_msgmask message)
+        {
+            Log("Msg: " + message);
+        }
 
         private static Decision CreateAndBindDecision(IEnumerable<Player> playerData, Model model, Set players, string bindingProperty)
         {
