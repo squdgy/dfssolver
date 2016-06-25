@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using LpSolveNativeInterface;
+//using LpSolveNativeInterface;
 using SolverFoundation.Plugin.LpSolve;
 
 namespace DfsSolver

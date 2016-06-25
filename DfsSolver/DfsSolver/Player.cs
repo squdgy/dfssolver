@@ -7,7 +7,14 @@ namespace DfsSolver
 {
 	public class Player
 	{
-		public int Id { get; internal set; }
+	    private readonly string[] _allPositions;
+
+        public Player(string[] allPositions)
+	    {
+	        _allPositions = allPositions;
+	    }
+
+        public int Id { get; internal set; }
 		public string Name { get; internal set; }
 		public HashSet<string> Positions { get; internal set; }
 		public int ProjectedPoints { get; internal set; }
@@ -30,37 +37,37 @@ namespace DfsSolver
 	        {
                 var selectedPos = "";
                 if (ChosenAtPosition0 == 1)
-                    selectedPos += "P";
+                    selectedPos += _allPositions[0];
                 if (ChosenAtPosition1 == 1)
-                    selectedPos += "C";
+                    selectedPos += _allPositions[1];
                 if (ChosenAtPosition2 == 1)
-                    selectedPos += "1B";
+                    selectedPos += _allPositions[2];
                 if (ChosenAtPosition3 == 1)
-                    selectedPos += "2B";
+                    selectedPos += _allPositions[3];
                 if (ChosenAtPosition4 == 1)
-                    selectedPos += "3B";
+                    selectedPos += _allPositions[4];
                 if (ChosenAtPosition5 == 1)
-                    selectedPos += "SS";
+                    selectedPos += _allPositions[5];
                 if (ChosenAtPosition6 == 1)
-                    selectedPos += "LF";
+                    selectedPos += _allPositions[6];
                 if (ChosenAtPosition7 == 1)
-                    selectedPos += "CF";
+                    selectedPos += _allPositions[7];
                 if (ChosenAtPosition8 == 1)
-                    selectedPos += "RF";
+                    selectedPos += _allPositions[8];
 	            return selectedPos;
 	        }
         }
 
 	    // used for solver Parameter binding
-        public double EligibleAtPosition0 => Positions.Contains("P") ? 1 : 0;
-	    public double EligibleAtPosition1 => Positions.Contains("C") ? 1 : 0;
-        public double EligibleAtPosition2 => Positions.Contains("1B") ? 1 : 0;
-        public double EligibleAtPosition3 => Positions.Contains("2B") ? 1 : 0;
-        public double EligibleAtPosition4 => Positions.Contains("3B") ? 1 : 0;
-        public double EligibleAtPosition5 => Positions.Contains("SS") ? 1 : 0;
-        public double EligibleAtPosition6 => Positions.Contains("LF") ? 1 : 0;
-        public double EligibleAtPosition7 => Positions.Contains("CF") ? 1 : 0;
-        public double EligibleAtPosition8 => Positions.Contains("RF") ? 1 : 0;
+        public double EligibleAtPosition0 => Positions.Contains(_allPositions[0]) ? 1 : 0;
+	    public double EligibleAtPosition1 => Positions.Contains(_allPositions[1]) ? 1 : 0;
+        public double EligibleAtPosition2 => Positions.Contains(_allPositions[2]) ? 1 : 0;
+        public double EligibleAtPosition3 => Positions.Contains(_allPositions[3]) ? 1 : 0;
+        public double EligibleAtPosition4 => Positions.Contains(_allPositions[4]) ? 1 : 0;
+        public double EligibleAtPosition5 => Positions.Contains(_allPositions[5]) ? 1 : 0;
+        public double EligibleAtPosition6 => Positions.Contains(_allPositions[6]) ? 1 : 0;
+        public double EligibleAtPosition7 => Positions.Contains(_allPositions[7]) ? 1 : 0;
+        public double EligibleAtPosition8 => Positions.Contains(_allPositions[8]) ? 1 : 0;
 
         public bool Chosen => ChosenAtPosition0 == 1 && EligibleAtPosition0 == 1 ||
 	                          ChosenAtPosition1 == 1 && EligibleAtPosition1 == 1 || 
@@ -74,7 +81,7 @@ namespace DfsSolver
 
 	    public override string ToString()
 	    {
-	        var positions = Positions.Aggregate("", (current, pos) => current + (pos + ","));
+	        var positions = Positions.Aggregate("", (current, pos) => current + pos + ",");
 	        return $"{ChosenPosition} {Salary} {ProjectedPoints} {Name} {positions}";
 		}
 	}

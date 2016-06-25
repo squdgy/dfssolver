@@ -37,13 +37,13 @@ namespace DfsSolver
         public static Position[] NASPositions = {
             new Position {Id = 500, Name = "D"}
         };
-        private static readonly Dictionary<string, int> NASDraftPositions = new Dictionary<string, int>
+        private static readonly IList<LineupSlot> NASDraftPositions = new List<LineupSlot>
         {
-            {"D", 6}
+            new LineupSlot{ Name = "D", Count = 6 }
         };
         private static void Main()
         {
-            LineupOptimizer.Solve(PlayerProvider.GetPlayersRandom(MLBPositions, 4).ToList(), MLBDraftPositions, 50000);
+            LineupOptimizer.Solve(PlayerProvider.GetPlayersRandom(MLBPositions, 2).ToList(), MLBDraftPositions, 50000);
             //LineupOptimizer.Solve(PlayerProvider.GetPlayersRandom(NASPositions, 7).ToList(), NASDraftPositions, 50000);
         }
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DfsSolver
 {
@@ -27,7 +28,7 @@ namespace DfsSolver
                         if (!playerPositions.Contains(position2.Name))
                             playerPositions.Add(position2.Name);
                     }
-                    players.Add(new Player
+                    players.Add(new Player(positions.Select(pos => pos.Name).ToArray())
                     {
                         Id = id++,
                         Name = name,
