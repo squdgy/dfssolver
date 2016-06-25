@@ -50,6 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="LineupOptimizer.cs" />
+    <Compile Include="LineupSlot.cs" />
     <Compile Include="Player.cs" />
     <Compile Include="PlayerProvider.cs" />
     <Compile Include="Position.cs" />

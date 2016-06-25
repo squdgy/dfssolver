@@ -21,17 +21,17 @@ namespace DfsSolver
         };
 
         // map positionId to number of draft positions to fill for that position
-        private static readonly Dictionary<string, int> MLBDraftPositions = new Dictionary<string, int>
+        private static readonly IList<LineupSlot> MLBDraftPositions = new List<LineupSlot>
             {
-                { "P", 2 }, //P
-                { "C", 1 }, //C
-                { "1B", 1 }, //1B
-                //{ "2B", 1 }, //2B
-                //{ "3B", 1 }, //3B
-                //{ "SS", 1 }, //SS
-                //{ "LF", 1 }, //LF
-                //{ "CF", 1 }, //CF
-                //{ "RF", 1 }  //RF
+                new LineupSlot{ Name = "P", Count = 2 },
+                new LineupSlot{ Name = "C", Count = 1 },
+                new LineupSlot{ Name = "1B", Count = 1 },
+                new LineupSlot{ Name = "2B", Count = 1 },
+                new LineupSlot{ Name = "3B", Count = 1 },
+                new LineupSlot{ Name = "SS", Count = 1 },
+                new LineupSlot{ Name = "LF", Count = 1 },
+                new LineupSlot{ Name = "CF", Count = 1 },
+                new LineupSlot{ Name = "RF", Count = 1 },
             };
 
         public static Position[] NASPositions = {
@@ -43,7 +43,7 @@ namespace DfsSolver
         };
         private static void Main()
         {
-            LineupOptimizer.Solve(PlayerProvider.GetPlayersRandom(MLBPositions, 4).ToList(), MLBDraftPositions, 20000);
+            LineupOptimizer.Solve(PlayerProvider.GetPlayersRandom(MLBPositions, 4).ToList(), MLBDraftPositions, 50000);
             //LineupOptimizer.Solve(PlayerProvider.GetPlayersRandom(NASPositions, 7).ToList(), NASDraftPositions, 50000);
         }
     }

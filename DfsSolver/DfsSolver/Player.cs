@@ -13,36 +13,36 @@ namespace DfsSolver
 		public int Salary { get; internal set; }
 
         // used for solver Decision binding
-        public double ChosenPitcher { get; set; }
-        public double ChosenCatcher { get; set; }
-        public double Chosen1B { get; set; }
-        public double Chosen2B { get; set; }
-        public double Chosen3B { get; set; }
-        public double ChosenSS { get; set; }
-        public double ChosenLF { get; set; }
-        public double ChosenCF { get; set; }
-        public double ChosenRF { get; set; }
+        public double ChosenAtPosition0 { get; set; }
+        public double ChosenAtPosition1 { get; set; }
+        public double ChosenAtPosition2 { get; set; }
+        public double ChosenAtPosition3 { get; set; }
+        public double ChosenAtPosition4 { get; set; }
+        public double ChosenAtPosition5 { get; set; }
+        public double ChosenAtPosition6 { get; set; }
+        public double ChosenAtPosition7 { get; set; }
+        public double ChosenAtPosition8 { get; set; }
 
         // used for solver Parameter binding
-        public double IsPitcherVal => Positions.Contains("P") ? 1 : 0;
-	    public double IsCatcherVal => Positions.Contains("C") ? 1 : 0;
-	    public double Is1BVal => Positions.Contains("1B") ? 1 : 0;
-	    public double Is2BVal => Positions.Contains("2B") ? 1 : 0;
-	    public double Is3BVal => Positions.Contains("3B") ? 1 : 0;
-	    public double IsSSVal => Positions.Contains("SS") ? 1 : 0;
-	    public double IsLFVal => Positions.Contains("LF") ? 1 : 0;
-	    public double IsCFVal => Positions.Contains("CF") ? 1 : 0;
-	    public double IsRFVal => Positions.Contains("RF") ? 1 : 0;
+        public double EligibleAtPosition0 => Positions.Contains("P") ? 1 : 0;
+	    public double EligibleAtPosition1 => Positions.Contains("C") ? 1 : 0;
+        public double EligibleAtPosition2 => Positions.Contains("1B") ? 1 : 0;
+        public double EligibleAtPosition3 => Positions.Contains("2B") ? 1 : 0;
+        public double EligibleAtPosition4 => Positions.Contains("3B") ? 1 : 0;
+        public double EligibleAtPosition5 => Positions.Contains("SS") ? 1 : 0;
+        public double EligibleAtPosition6 => Positions.Contains("LF") ? 1 : 0;
+        public double EligibleAtPosition7 => Positions.Contains("CF") ? 1 : 0;
+        public double EligibleAtPosition8 => Positions.Contains("RF") ? 1 : 0;
 
-	    public bool Chosen => ChosenPitcher == 1 && IsPitcherVal == 1 ||
-	                          ChosenCatcher == 1 && IsCatcherVal == 1 || 
-	                          Chosen1B == 1 && Is1BVal == 1 || 
-	                          Chosen2B == 1 && Is2BVal == 1 || 
-	                          Chosen3B == 1 && Is3BVal == 1 || 
-	                          ChosenSS == 1 && IsSSVal == 1 || 
-	                          ChosenLF == 1 && IsLFVal == 1 || 
-	                          ChosenCF == 1 && IsCFVal == 1 || 
-	                          ChosenRF == 1 && IsRFVal == 1;
+        public bool Chosen => ChosenAtPosition0 == 1 && EligibleAtPosition0 == 1 ||
+	                          ChosenAtPosition1 == 1 && EligibleAtPosition1 == 1 || 
+	                          ChosenAtPosition2 == 1 && EligibleAtPosition2 == 1 || 
+	                          ChosenAtPosition3 == 1 && EligibleAtPosition3 == 1 || 
+	                          ChosenAtPosition4 == 1 && EligibleAtPosition4 == 1 || 
+	                          ChosenAtPosition5 == 1 && EligibleAtPosition5 == 1 || 
+	                          ChosenAtPosition6 == 1 && EligibleAtPosition6 == 1 || 
+	                          ChosenAtPosition7 == 1 && EligibleAtPosition7 == 1 || 
+	                          ChosenAtPosition8 == 1 && EligibleAtPosition8 == 1;
 
 	    public override string ToString()
 	    {
@@ -50,24 +50,24 @@ namespace DfsSolver
 	        foreach (var pos in Positions)
 	            positions += pos + ",";
 	        var selectedPos = "";
-	        if (ChosenPitcher == 1)
+	        if (ChosenAtPosition0 == 1)
 	            selectedPos += "P";
-            if (ChosenCatcher == 1)
-                selectedPos += "C";
-            if (Chosen1B == 1)
-                selectedPos += "1B";
-            if (Chosen2B == 1)
-                selectedPos += "2B";
-            if (Chosen3B == 1)
-                selectedPos += "3B";
-            if (ChosenSS == 1)
-                selectedPos += "SS";
-            if (ChosenLF == 1)
-                selectedPos += "LF";
-            if (ChosenCF == 1)
-                selectedPos += "CF";
-            if (ChosenRF == 1)
-                selectedPos += "RF";
+	        if (ChosenAtPosition1 == 1)
+	            selectedPos += "C";
+	        if (ChosenAtPosition2 == 1)
+	            selectedPos += "1B";
+	        if (ChosenAtPosition3 == 1)
+	            selectedPos += "2B";
+	        if (ChosenAtPosition4 == 1)
+	            selectedPos += "3B";
+	        if (ChosenAtPosition5 == 1)
+	            selectedPos += "SS";
+	        if (ChosenAtPosition6 == 1)
+	            selectedPos += "LF";
+	        if (ChosenAtPosition7 == 1)
+	            selectedPos += "CF";
+	        if (ChosenAtPosition8 == 1)
+	            selectedPos += "RF";
             return $"{selectedPos} {Salary} {ProjectedPoints} {Name} {positions}";
 		}
 	}

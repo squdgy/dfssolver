@@ -10,9 +10,8 @@ namespace DfsSolver
 {
     public class LineupOptimizer
     {
-        public static Solution Solve(IList<Player> playerPool, Dictionary<string, int> rosterSlots, int salaryCap)
+        public static Solution Solve(IList<Player> playerPool, IList<LineupSlot> lineupSlots, int salaryCap)
         {
-            var slotList = rosterSlots.ToList();
             var positionHelpers = new List<PositionHelper>();
             var context = SolverContext.GetContext();
             var model = context.CreateModel();
@@ -23,54 +22,19 @@ namespace DfsSolver
             var projectedPoints = CreateAndBindParameter(playerPool, model, players, "ProjectedPoints");
 
             // Positions
-            var pitcher = CreateAndBindParameter(playerPool, model, players, "IsPitcherVal");
-            var chooseP = CreateAndBindDecision(playerPool, model, players, "ChosenPitcher");
-            positionHelpers.Add(new PositionHelper
+            for (var i = 0; i < lineupSlots.Count; i++)
             {
-                Decision = chooseP,
-                Parameter = pitcher,
-                Name = "P",
-                Count = rosterSlots["P"]
-            });
-
-            var chooseC = CreateAndBindDecision(playerPool, model, players, "ChosenCatcher");
-            var catcher = CreateAndBindParameter(playerPool, model, players, "IsCatcherVal");
-            positionHelpers.Add(new PositionHelper
-            {
-                Decision = chooseC,
-                Parameter = catcher,
-                Name = "C",
-                Count = rosterSlots["C"]
-            });
-
-            var firstBaseman = CreateAndBindParameter(playerPool, model, players, "Is1BVal");
-            var choose1B = CreateAndBindDecision(playerPool, model, players, "Chosen1B");
-            positionHelpers.Add(new PositionHelper
-            {
-                Decision = choose1B,
-                Parameter = firstBaseman,
-                Name = "1B",
-                Count = rosterSlots["1B"]
-            });
+                var decisionProp = $"ChosenAtPosition{i}";
+                var paramProp = $"EligibleAtPosition{i}";
+                positionHelpers.Add(new PositionHelper
+                {
+                    Decision = CreateAndBindDecision(playerPool, model, players, decisionProp),
+                    Parameter = CreateAndBindParameter(playerPool, model, players, paramProp),
+                    Name = lineupSlots[i].Name,
+                    Count = lineupSlots[i].Count
+                });
+            }
             var decisions = positionHelpers.Select(ph => ph.Decision).ToList();
-
-            //var secondBaseman = CreateAndBindParameter(playerPool, model, players, "Is2BVal");
-            //var thirdBaseman = CreateAndBindParameter(playerPool, model, players, "Is3BVal");
-            //var shortstop = CreateAndBindParameter(playerPool, model, players, "IsSSVal");
-            //var leftFielders = CreateAndBindParameter(playerPool, model, players, "IsLFVal");
-            //var centerFielders = CreateAndBindParameter(playerPool, model, players, "IsCFVal");
-            //var rightFielders = CreateAndBindParameter(playerPool, model, players, "IsRFVal");
-
-            // ---- Define Decisions ----
-            // For each position, if player is choosen for that position, 1 if true, and 0 if false
-            //model.AddConstraint("catchers", Model.Sum(Model.ForEach(players, i => chooseC[i] * catcher[i])) == slotList[1].Value);
-            //var choose1B = CreateAndBindDecision(playerPool, model, players, "Chosen1B");
-            //var choose2B = CreateAndBindDecision(playerPool, model, players, "Chosen2B");
-            //var choose3B = CreateAndBindDecision(playerPool, model, players, "Chosen3B");
-            //var chooseSS = CreateAndBindDecision(playerPool, model, players, "ChosenSS");
-            //var chooseLF = CreateAndBindDecision(playerPool, model, players, "ChosenLF");
-            //var chooseCF = CreateAndBindDecision(playerPool, model, players, "ChosenCF");
-            //var chooseRF = CreateAndBindDecision(playerPool, model, players, "ChosenRF");
 
             // ---- Define Constraints ----
             // Reserve the right number of each position.
@@ -80,36 +44,21 @@ namespace DfsSolver
                         Model.ForEach(players, i => ph.Decision[i] * ph.Parameter[i])
                     ) == ph.Count);
             }
-            //model.AddConstraint("pitchers", Model.Sum(Model.ForEach(players, i => chooseP[i] * pitcher[i])) == slotList[0].Value);
-            ////var cc = slotList.Count > 1 ? slotList[1].Value : 0;
-            //model.AddConstraint("catchers", Model.Sum(Model.ForEach(players, i => chooseC[i] * catcher[i])) == slotList[1].Value);
-            //model.AddConstraint("first_basemen", Model.Sum(Model.ForEach(players, i => choose1B[i] * firstBaseman[i])) == rosterSlots["1B"]);
-            //model.AddConstraint("second_basemen", Model.Sum(Model.ForEach(players, i => choose2B[i] * secondBaseman[i])) == rosterSlots["2B"]);
-            //model.AddConstraint("third_basemen", Model.Sum(Model.ForEach(players, i => choose3B[i] * thirdBaseman[i])) == rosterSlots["3B"]);
-            //model.AddConstraint("shortstop", Model.Sum(Model.ForEach(players, i => chooseSS[i] * shortstop[i])) == rosterSlots["SS"]);
-            //model.AddConstraint("leftFielders", Model.Sum(Model.ForEach(players, i => chooseLF[i] * leftFielders[i])) == rosterSlots["LF"]);
-            //model.AddConstraint("centerFielders", Model.Sum(Model.ForEach(players, i => chooseCF[i] * centerFielders[i])) == rosterSlots["CF"]);
-            //model.AddConstraint("rightFielders", Model.Sum(Model.ForEach(players, i => chooseRF[i] * rightFielders[i])) == rosterSlots["RF"]);
-
-            // total size of lineup
-            //model.AddConstraints("lineupSize", AllPlayers(decisions, playerPool) == rosterSlots.Sum(rs => rs.Value));
 
             // within the salary cap
             var sumOfSalaries = Model.Sum(
-                Model.ForEach(players, i => NumPositionsForPlayerPositions(i, decisions) * salary[i])
+                Model.ForEach(players, i => NumPositionsForPlayer(i, decisions) * salary[i])
             );
             model.AddConstraint("withinSalaryCap", sumOfSalaries <= salaryCap);
 
-            // same player can't be in 2 roster spots at the same time
-            //foreach (var player in playerPool)
-            //{
-            //    model.AddConstraint($"unique_{player.Id}", Model.ForEach(players, i => UniquePosition(i, decisions)));
-            //}
+            // players can only be in the player pool at 1 position
+            model.AddConstraint("maxOf1PositionPerPlayer",
+                Model.ForEach(players, i => NumPositionsForPlayer(i, decisions) <= 1));
 
             // ---- Define the Goal ----
             // maximize for projectedPoints
             var sumOfProjectedPoints = Model.Sum(
-                Model.ForEach(players, i => NumPositionsForPlayerPositions(i, decisions) * projectedPoints[i])
+                Model.ForEach(players, i => NumPositionsForPlayer(i, decisions) * projectedPoints[i])
             );
             model.AddGoal("maxPoints", GoalKind.Maximize, sumOfProjectedPoints);
 
@@ -131,7 +80,7 @@ namespace DfsSolver
             }
             context.PropagateDecisions();
             var lineup = GetSolution(playerPool);
-            if (lineup.Count == rosterSlots.Sum(rs => rs.Value))
+            if (lineup.Count == lineupSlots.Sum(ls => ls.Count))
                 return new Solution
                 {
                     Lineup = lineup,
@@ -145,7 +94,7 @@ namespace DfsSolver
         // sums up the number of positions that a player is chosen into
         // in the final solution this will always be 0 or 1, but in intermediate
         // decisions it could be 2 or more
-        private static Term NumPositionsForPlayerPositions(Term i, IList<Decision> decisions)
+        private static Term NumPositionsForPlayer(Term i, IList<Decision> decisions)
         {
             var decisionCount = decisions.Count;
             var sum = new SumTermBuilder(decisionCount);
@@ -166,33 +115,6 @@ namespace DfsSolver
         private static void LpSolveMsgFunc(int lp, int userhandle, lpsolve.lpsolve_msgmask message)
         {
             Log("Msg: " + message);
-        }
-
-        private static Term UniquePosition(Term i, IList<Decision> decisions)
-        {
-            var decisionCount = decisions.Count;
-            var sumOfPositions = new SumTermBuilder(decisionCount);
-            for (var j = 0; j < decisionCount; j++)
-            {
-                sumOfPositions.Add(decisions[j][i]);
-            }
-            return sumOfPositions.ToTerm() <= 1;
-        }
-
-        private static Term AllPlayers(IList<Decision> decisions, IList<Player> playerPool)
-        {
-            var decisionCount = decisions.Count;
-            var sum = new SumTermBuilder(decisionCount);
-            for (var i = 0; i < playerPool.Count; i++)
-            {
-                var sumOfPositions = new SumTermBuilder(decisionCount);
-                for (var j = 0; j < decisionCount; j++)
-                {
-                    sumOfPositions.Add(decisions[j][i]);
-                }
-                sum.Add(sumOfPositions.ToTerm());
-            }
-            return sum.ToTerm();
         }
 
         private static Decision CreateAndBindDecision(IEnumerable<Player> playerData, Model model, Set players, string bindingProperty)
