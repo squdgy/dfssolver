@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using LpSolveNativeInterface;
 using SolverFoundation.Plugin.LpSolve;
 
 namespace DfsSolver
@@ -51,6 +52,7 @@ namespace DfsSolver
                 Name = "1B",
                 Count = rosterSlots["1B"]
             });
+            var decisions = positionHelpers.Select(ph => ph.Decision).ToList();
 
             //var secondBaseman = CreateAndBindParameter(playerPool, model, players, "Is2BVal");
             //var thirdBaseman = CreateAndBindParameter(playerPool, model, players, "Is3BVal");
@@ -89,26 +91,29 @@ namespace DfsSolver
             //model.AddConstraint("centerFielders", Model.Sum(Model.ForEach(players, i => chooseCF[i] * centerFielders[i])) == rosterSlots["CF"]);
             //model.AddConstraint("rightFielders", Model.Sum(Model.ForEach(players, i => chooseRF[i] * rightFielders[i])) == rosterSlots["RF"]);
 
-            var decisions = positionHelpers.Select(ph => ph.Decision).ToList();
-
-            // same player can't be in 2 roster spots at the same time
-            foreach (var player in playerPool)
-            {
-                model.AddConstraint($"unique_{player.Id}", Model.ForEach(players, i => UniquePosition(i, decisions)));
-            }
-            model.AddConstraints("lineupSize", AllPlayers(decisions, playerPool) == rosterSlots.Sum(rs => rs.Value));
-            //var decisionCount = 2;
-            //var playerCount = playerPool.Count;
-            //var sumOfUniqueLineupPositions = new SumTermBuilder(decisionCount);
-
-            //for (var j = 0; j < decisionCount; j++)
-            //{
-            //    sumOfUniqueLineupPositions.Add(decisions[j]);
-            //}
-            //           model.AddConstraints("noMoreThanOnce", Model.ForEach(players, i => UniqueLineupPositionFunc(i, decisions, playerCount)));
+            // total size of lineup
+            //model.AddConstraints("lineupSize", AllPlayers(decisions, playerPool) == rosterSlots.Sum(rs => rs.Value));
 
             // within the salary cap
-            model.AddConstraint("maxSalary", SumOfSalaries(decisions, playerPool) <= salaryCap);
+            //model.AddConstraint("maxSalary", SumOfSalaries(decisions, playerPool, players) <= salaryCap);
+            //model.AddConstraint("maxSalary", Model.Sum(Model.ForEach(players, i => NumPositions(i, decisions) * salary[i])) <= salaryCap);
+            //var sumOfSalaries = Model.Sum(Model.ForEach(players, i =>
+            //    (chooseP[i] + chooseC[i] + choose1B[i]) *
+            //    salary[i])
+            //);
+            //// within the salary cap
+            //model.AddConstraint("withinSalaryCap", Model.Sum(Model.ForEach(players, i => Model.If(chooseP[i] > 0, salary[i], 0))) <= unfilledCap);
+            // within the salary cap
+            var sumOfSalaries = Model.Sum(Model.ForEach(players, i =>
+                (chooseP[i] + chooseC[i] + choose1B[i]) * salary[i])
+            );
+            model.AddConstraint("maxSalary", sumOfSalaries <= salaryCap);
+            //model.AddConstraint("maxSalary", sumOfSalaries <= salaryCap);
+            // same player can't be in 2 roster spots at the same time
+            //foreach (var player in playerPool)
+            //{
+            //    model.AddConstraint($"unique_{player.Id}", Model.ForEach(players, i => UniquePosition(i, decisions)));
+            //}
 
             // ---- Define the Goal ----
             // maximize for projectedPoints
@@ -121,7 +126,10 @@ namespace DfsSolver
             // Find that lineup
             var simplex = new LpSolveDirective
             {
-                TimeLimit = 10000
+                TimeLimit = 10000,
+                LpSolveMsgFunc = LpSolveMsgFunc,
+                LpSolveVerbose = 4,
+                LpSolveLogFunc = LpSolveLogFunc
             };
             var solution = context.Solve(simplex);
             Log(solution.GetReport().ToString());
@@ -142,6 +150,29 @@ namespace DfsSolver
 
             Log("No Solution!");
             return null;
+        }
+
+        private static Term NumPositions(Term i, List<Decision> decisions)
+        {
+            var decisionCount = decisions.Count;
+            var sum = new SumTermBuilder(decisionCount);
+            var sumOfPositions = new SumTermBuilder(decisionCount);
+            for (var j = 0; j < decisionCount; j++)
+            {
+                sumOfPositions.Add(decisions[j][i]);
+            }
+            sum.Add(sumOfPositions.ToTerm());
+            return sum.ToTerm();
+        }
+
+        private static void LpSolveLogFunc(int lp, int userhandle, string buffer)
+        {
+            Log(buffer);
+        }
+
+        private static void LpSolveMsgFunc(int lp, int userhandle, lpsolve.lpsolve_msgmask message)
+        {
+            Log("Msg: " + message);
         }
 
         private static Term UniquePosition(Term i, IList<Decision> decisions)
@@ -174,10 +205,10 @@ namespace DfsSolver
         // decisions are position based, ex. is a pitcher, is a catcher etc.; value 1 if true
         // This creates a term which sums up the value of all the selected players in the player pool
         // based on the current decisions of the solver
-        private static Term SumOfSalaries(IList<Decision> decisions, IList<Player> playerPool)
+        private static Term SumOfSalaries(IList<Decision> decisions, IList<Player> playerPool, Set players)
         {
             var decisionCount = decisions.Count;
-            var sum = new SumTermBuilder(decisionCount);
+            var sum = new SumTermBuilder(playerPool.Count);
             for (var i = 0; i < playerPool.Count; i++)
             {
                 var sumOfPositions = new SumTermBuilder(decisionCount);
@@ -187,6 +218,22 @@ namespace DfsSolver
                 }
                 sum.Add(sumOfPositions.ToTerm() * playerPool[i].Salary);
             }
+            return sum.ToTerm();
+        }
+
+        private static Term SumOfSalaries(Term i, IList<Decision> decisions, Term salary)
+        {
+            var decisionCount = decisions.Count;
+            var sum = new SumTermBuilder(decisionCount);
+            //for (var i = 0; i < playerPool.Count; i++)
+            //{
+                var sumOfPositions = new SumTermBuilder(decisionCount);
+                for (var j = 0; j < decisionCount; j++)
+                {
+                    sumOfPositions.Add(decisions[j][i]);
+                }
+                sum.Add(sumOfPositions.ToTerm() * salary);
+            //}
             return sum.ToTerm();
         }
 

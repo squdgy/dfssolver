@@ -43,7 +43,7 @@ namespace DfsSolver
         };
         private static void Main()
         {
-            LineupOptimizer.Solve(PlayerProvider.GetPlayersRandom(MLBPositions, 4).ToList(), MLBDraftPositions, 50000);
+            LineupOptimizer.Solve(PlayerProvider.GetPlayersRandom(MLBPositions, 4).ToList(), MLBDraftPositions, 20000);
             //LineupOptimizer.Solve(PlayerProvider.GetPlayersRandom(NASPositions, 7).ToList(), NASDraftPositions, 50000);
         }
     }
