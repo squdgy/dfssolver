@@ -13,6 +13,7 @@ namespace DfsSolver
         public static Solution Solve(IList<Player> playerPool, IList<LineupSlot> lineupSlots, int salaryCap)
         {
             // deal with pre filled slots
+            Player.SetPositions(lineupSlots.Select(ls => ls.Name).ToArray());
             var prefilled = playerPool.Where(p => p.Chosen).ToList();
             var availablePlayers = playerPool.Except(prefilled).ToList();
             var unfilledCap = salaryCap - prefilled.Sum(p => p.Salary);
@@ -21,11 +22,10 @@ namespace DfsSolver
             {
                 var prefilledCount = prefilled.Count(p => p.ChosenPosition == slot.Name);
                 var newCountForSlot = slot.Count - prefilledCount;
-                if (newCountForSlot > 0)
-                    unfilledSlots.Add(new LineupSlot
-                    {
-                        Name = slot.Name, Count = newCountForSlot
-                    });
+                unfilledSlots.Add(new LineupSlot
+                {
+                    Name = slot.Name, Count = newCountForSlot
+                });
             }
 
             var positionHelpers = new List<PositionHelper>();

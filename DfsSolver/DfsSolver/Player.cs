@@ -2,14 +2,15 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace DfsSolver
 {
 	public class Player
 	{
-	    private readonly string[] _allPositions;
+	    private static string[] _allPositions;
 
-        public Player(string[] allPositions)
+	    internal static void SetPositions(string[] allPositions)
 	    {
 	        _allPositions = allPositions;
 	    }

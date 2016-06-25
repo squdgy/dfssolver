@@ -28,7 +28,7 @@ namespace DfsSolver
                         if (!playerPositions.Contains(position2.Name))
                             playerPositions.Add(position2.Name);
                     }
-                    players.Add(new Player(positions.Select(pos => pos.Name).ToArray())
+                    players.Add(new Player
                     {
                         Id = id++,
                         Name = name,
@@ -41,6 +41,7 @@ namespace DfsSolver
 
             // randomly prefill n players
             var n = random.Next(1, positions.Length + 1);
+            var chosenPlayers = new List<Player>();
             for (var i = 0; i < n; i++)
             {
                 var position = positions[i];
@@ -48,7 +49,8 @@ namespace DfsSolver
                 var eligiblePlayerCount = eligiblePlayers.Count;
                 var randEligible = random.Next(0, eligiblePlayerCount);
                 var player = eligiblePlayers[randEligible];
-                if (player.Chosen) continue; // don't re-choose player for another position
+                if (chosenPlayers.Contains(player)) continue; // don't re-choose player for another position
+                chosenPlayers.Add(player);
                 switch (i)
                 {
                     case 0:
