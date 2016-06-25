@@ -1,6 +1,7 @@
 ﻿// Describes a player in a way that Solver can bind with it
 
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DfsSolver
 {
@@ -23,7 +24,34 @@ namespace DfsSolver
         public double ChosenAtPosition7 { get; set; }
         public double ChosenAtPosition8 { get; set; }
 
-        // used for solver Parameter binding
+	    public string ChosenPosition
+	    {
+	        get
+	        {
+                var selectedPos = "";
+                if (ChosenAtPosition0 == 1)
+                    selectedPos += "P";
+                if (ChosenAtPosition1 == 1)
+                    selectedPos += "C";
+                if (ChosenAtPosition2 == 1)
+                    selectedPos += "1B";
+                if (ChosenAtPosition3 == 1)
+                    selectedPos += "2B";
+                if (ChosenAtPosition4 == 1)
+                    selectedPos += "3B";
+                if (ChosenAtPosition5 == 1)
+                    selectedPos += "SS";
+                if (ChosenAtPosition6 == 1)
+                    selectedPos += "LF";
+                if (ChosenAtPosition7 == 1)
+                    selectedPos += "CF";
+                if (ChosenAtPosition8 == 1)
+                    selectedPos += "RF";
+	            return selectedPos;
+	        }
+        }
+
+	    // used for solver Parameter binding
         public double EligibleAtPosition0 => Positions.Contains("P") ? 1 : 0;
 	    public double EligibleAtPosition1 => Positions.Contains("C") ? 1 : 0;
         public double EligibleAtPosition2 => Positions.Contains("1B") ? 1 : 0;
@@ -46,29 +74,8 @@ namespace DfsSolver
 
 	    public override string ToString()
 	    {
-	        var positions = "";
-	        foreach (var pos in Positions)
-	            positions += pos + ",";
-	        var selectedPos = "";
-	        if (ChosenAtPosition0 == 1)
-	            selectedPos += "P";
-	        if (ChosenAtPosition1 == 1)
-	            selectedPos += "C";
-	        if (ChosenAtPosition2 == 1)
-	            selectedPos += "1B";
-	        if (ChosenAtPosition3 == 1)
-	            selectedPos += "2B";
-	        if (ChosenAtPosition4 == 1)
-	            selectedPos += "3B";
-	        if (ChosenAtPosition5 == 1)
-	            selectedPos += "SS";
-	        if (ChosenAtPosition6 == 1)
-	            selectedPos += "LF";
-	        if (ChosenAtPosition7 == 1)
-	            selectedPos += "CF";
-	        if (ChosenAtPosition8 == 1)
-	            selectedPos += "RF";
-            return $"{selectedPos} {Salary} {ProjectedPoints} {Name} {positions}";
+	        var positions = Positions.Aggregate("", (current, pos) => current + (pos + ","));
+	        return $"{ChosenPosition} {Salary} {ProjectedPoints} {Name} {positions}";
 		}
 	}
 }
