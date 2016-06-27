@@ -34,6 +34,11 @@ namespace DfsSolver
                 });
             }
 
+            // trim the draft pool by removing those whose draft positions don't need to be filled
+            var unfilledPosNames = unfilledSlots.Where(ls => ls.Count > 0).Select(ls => ls.Name).ToList();            
+            availablePlayers = availablePlayers.Where(
+                    p => unfilledPosNames.Intersect(p.Positions).Any()).ToList();
+
             var positionHelpers = new List<PositionHelper>();
             var context = SolverContext.GetContext();
             var model = context.CreateModel();
