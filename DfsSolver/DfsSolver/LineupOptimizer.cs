@@ -94,8 +94,8 @@ namespace DfsSolver
             var simplex = new LpSolveDirective
             {
                 TimeLimit = 10000, // timeout after 10 seconds
+                LpSolveVerbose = 0, // 4
                 LpSolveMsgFunc = LpSolveMsgFunc,
-                LpSolveVerbose = 1,
                 LpSolveLogFunc = LpSolveLogFunc
             };
             var solution = context.Solve(simplex);
@@ -107,7 +107,8 @@ namespace DfsSolver
                 return null;
             }
             context.PropagateDecisions();
-            var lineup = GetSolutionLineup(playerPool, lineupSlots);
+            ReportSolution(playerPool, lineupSlots, prefilled, availablePlayers);
+            var lineup = playerPool.Where(p => p.Chosen).ToList();
             if (lineup.Count == lineupSlots.Sum(ls => ls.Count))
                 return new Solution
                 {
@@ -162,26 +163,43 @@ namespace DfsSolver
             return param;
         }
 
-        private static IList<Player> GetSolutionLineup(ICollection<Player> playerPool, IList<LineupSlot> lineupSlots)
+        private static void ReportSolution(ICollection<Player> playerPool,
+            IList<LineupSlot> lineupSlots, 
+            ICollection<Player> prefilled, ICollection<Player> available)
         {
-            var selected = playerPool.Where(p => p.Chosen).ToList();
+            Log("====================================================");
+            Log($"Pre-filled players: {prefilled.Count}");
+            Log("=========================================");
+            foreach (var lineupSlot in lineupSlots)
+            {
+                var atSlot = prefilled.Where(s => s.ChosenPosition == lineupSlot.Name);
+                foreach (var s in atSlot)
+                {
+                    Log(s.ToString());
+                }
+            }
+            Log("=========================================");
 
-            Log($"Player Pool: {playerPool.Count} total:");
-            var totalProjectedPoints = 0;
+            var selected = playerPool.Where(p => p.Chosen).ToList();
+            Log($"Player Pool Size: {playerPool.Count}, After prefill exclusions: {available.Count}");
+            Log("====================================================");
+            Log("Lineup");
+            Log("====================================================");
+            var totalProjectedPoints = 0m;
             var totalSalary = 0;
             foreach (var lineupSlot in lineupSlots)
             {
-                var selectedAtSlot = selected.Where(s => s.ChosenPosition == lineupSlot.Name);
-                foreach (var s in selectedAtSlot)
+                var atSlot = selected.Where(s => s.ChosenPosition == lineupSlot.Name);
+                foreach (var s in atSlot)
                 {
                     totalProjectedPoints += s.ProjectedPoints;
                     totalSalary += s.Salary;
                     Log(s.ToString());
                 }
             }
+            Log("=========================================");
             Log($"Projected Points: {totalProjectedPoints}, Used Salary: {totalSalary}");
-   
-            return selected;
+            Log("====================================================");
         }
 
         private static void Log(string text)
