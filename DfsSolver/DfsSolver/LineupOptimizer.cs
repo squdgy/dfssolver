@@ -136,12 +136,12 @@ namespace DfsSolver
             return sum.ToTerm();
         }
 
-        private static void LpSolveLogFunc(int lp, int userhandle, string buffer)
+        private static void LpSolveLogFunc(IntPtr lp, int userhandle, string buffer)
         {
             Log(buffer);
         }
 
-        private static void LpSolveMsgFunc(int lp, int userhandle, lpsolve.lpsolve_msgmask message)
+        private static void LpSolveMsgFunc(IntPtr lp, int userhandle, lpsolve.lpsolve_msgmask message)
         {
             Log("Msg: " + message);
         }
