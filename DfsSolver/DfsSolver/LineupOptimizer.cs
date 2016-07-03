@@ -2,7 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using LpSolveNativeInterface;
 using SolverFoundation.Plugin.LpSolve;
 
@@ -41,6 +43,8 @@ namespace DfsSolver
 
             var positionHelpers = new List<PositionHelper>();
             var context = SolverContext.GetContext();
+            ConfigureLpSolve(context);
+
             var model = context.CreateModel();
             var players = new Set(Domain.Any, "players");
 
@@ -118,6 +122,17 @@ namespace DfsSolver
 
             Log("No Solution! Count of players doesn't match.");
             return null;
+        }
+
+        private static void ConfigureLpSolve(SolverContext context)
+        {
+            var executingDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var solvers = context.RegisteredSolvers;
+            var milpSolver = new SolverRegistration("LpSolveMIP", SolverCapability.MILP,
+                "Microsoft.SolverFoundation.Services.ILinearSolver", $"{executingDirectory}\\LpSolvePlugin.dll",
+                "SolverFoundation.Plugin.LpSolve.LpSolveSolver", "SolverFoundation.Plugin.LpSolve.LpSolveDirective",
+                "SolverFoundation.Plugin.LpSolve.LpSolveParams");
+            solvers.Add(milpSolver);
         }
 
         // sums up the number of positions that a player is chosen into
