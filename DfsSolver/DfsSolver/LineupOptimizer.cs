@@ -50,7 +50,7 @@ namespace DfsSolver
 
             // ---- Define Parameters and Decisions----
             var salary = CreateAndBindParameter(availablePlayers, model, players, "Salary");
-            var projectedPoints = CreateAndBindParameter(availablePlayers, model, players, "ProjectedPoints");
+            var projectedPoints = CreateAndBindParameter(availablePlayers, model, players, "ProjectedPointsAsInt");
 
             // For each lineup position, define 1 param and 1 decision
             // the parameter value indicates whether or not the player is eligible to play at that lineup position

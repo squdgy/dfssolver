@@ -18,7 +18,7 @@ namespace DfsSolver
                 {
                     var name = $"Joe_{id} Player";
                     var salary = random.Next(3000, 8000);
-                    var projectedPoints = random.Next(0, 30);
+                    var projectedPoints = random.Next(0, 30) + ((decimal)random.Next(0, 99)) / 100; ;
                     var playerPositions = new HashSet<string> {position.Name};
                     var hasSecondPosition = random.Next(0, 2) == 1;
                     if (hasSecondPosition)

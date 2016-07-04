@@ -17,7 +17,7 @@ namespace DfsSolver
         public int Id { get; internal set; }
 		public string Name { get; internal set; }
 		public HashSet<string> Positions { get; internal set; }
-		public int ProjectedPoints { get; internal set; }
+		public decimal ProjectedPoints { get; internal set; }
 		public int Salary { get; internal set; }
 
         // used for solver Decision binding
@@ -58,7 +58,8 @@ namespace DfsSolver
 	        }
         }
 
-	    // used for solver Parameter binding
+        // used for solver Parameter binding
+        public int ProjectedPointsAsInt => (int)(ProjectedPoints * 100);
         public double EligibleAtPosition0 => Positions.Contains(_allPositions[0]) ? 1 : 0;
 	    public double EligibleAtPosition1 => Positions.Contains(_allPositions[1]) ? 1 : 0;
         public double EligibleAtPosition2 => Positions.Contains(_allPositions[2]) ? 1 : 0;
