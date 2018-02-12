@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DfsSolver
+namespace DfsBase
 {
     public class PlayerProvider
     {

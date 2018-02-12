@@ -1,7 +1,8 @@
-﻿// 
+﻿// This program uses Microsoft Solver Foundation with lpsolve as the solver library 
 
 using System.Collections.Generic;
 using System.Linq;
+using DfsBase;
 
 namespace DfsSolver
 {

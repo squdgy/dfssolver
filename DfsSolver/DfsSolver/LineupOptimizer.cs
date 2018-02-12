@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using LpSolveNativeInterface;
 using SolverFoundation.Plugin.LpSolve;
+using DfsBase;
 
 namespace DfsSolver
 {
@@ -19,7 +20,7 @@ namespace DfsSolver
         /// <param name="lineupSlots">all lineup positions with the count of how many to draft</param>
         /// <param name="salaryCap">salary cap for the contest</param>
         /// <returns></returns>
-        public static Solution Solve(IList<Player> playerPool, IList<LineupSlot> lineupSlots, int salaryCap)
+        public static LineupSolution Solve(IList<Player> playerPool, IList<LineupSlot> lineupSlots, int salaryCap)
         {
             // deal with pre filled slots
             var prefilled = playerPool.Where(p => p.Chosen).ToList();
@@ -114,7 +115,7 @@ namespace DfsSolver
             ReportSolution(playerPool, lineupSlots, prefilled, availablePlayers);
             var lineup = playerPool.Where(p => p.Chosen).ToList();
             if (lineup.Count == lineupSlots.Sum(ls => ls.Count))
-                return new Solution
+                return new LineupSolution
                 {
                     Lineup = lineup,
                     IsOptimal = solution.Quality == SolverQuality.Optimal

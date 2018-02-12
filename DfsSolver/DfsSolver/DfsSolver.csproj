@@ -58,14 +58,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="LineupOptimizer.cs" />
-    <Compile Include="LineupSlot.cs" />
-    <Compile Include="Player.cs" />
-    <Compile Include="PlayerProvider.cs" />
-    <Compile Include="Position.cs" />
     <Compile Include="PositionHelper.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Solution.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -74,6 +69,12 @@
     <Content Include="lpsolve55.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DfsBase\DfsBase.csproj">
+      <Project>{7125d872-3807-4118-87e2-6306ab487b6a}</Project>
+      <Name>DfsBase</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

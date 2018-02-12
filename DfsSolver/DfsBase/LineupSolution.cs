@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic; 
 
-namespace DfsSolver
+namespace DfsBase
 {
-    public class Solution
+    public class LineupSolution
     {
         public bool IsOptimal { get; set; }
         public IList<Player> Lineup { get; set; }

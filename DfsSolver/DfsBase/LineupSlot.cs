@@ -1,4 +1,4 @@
-﻿namespace DfsSolver
+﻿namespace DfsBase
 {
     public class LineupSlot
     {
