@@ -40,6 +40,12 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Google.OrTools, Version=6.5.4527.26515, Culture=neutral, PublicKeyToken=71383e30c4d89041, processorArchitecture=AMD64">
+      <HintPath>..\packages\Google.OrTools.6.5.4527\lib\net40\Google.OrTools.dll</HintPath>
+    </Reference>
+    <Reference Include="Google.Protobuf, Version=3.2.0.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604, processorArchitecture=MSIL">
+      <HintPath>..\packages\Google.Protobuf.3.2.0\lib\net45\Google.Protobuf.dll</HintPath>
+    </Reference>
     <Reference Include="LpSolvePlugIn, Version=3.0.1.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>lib\LpSolvePlugIn.dll</HintPath>
@@ -59,6 +65,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DfsBase\DfsBase.csproj">
