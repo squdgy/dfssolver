@@ -6,6 +6,14 @@ namespace DfsBase
 {
     public class PlayerProvider
     {
+        // Provides a random player pool to be used for testing
+        // The positions in the player pool are determined by the positions array
+        // The number at each position is random but will be between
+        // minAtPosition and 10 + minAtPosition
+        // supports a player pool with up to 8 different positions
+        // Also randomly preselects players as "chosen" for a lineup, so
+        // that the optimization algorithm can work with some players already having
+        // been chosen
         public static IList<Player> GetPlayersRandom(Position[] positions, int minAtPosition)
         {
             var random = new Random();
@@ -18,7 +26,7 @@ namespace DfsBase
                 {
                     var name = $"Joe_{id} Player";
                     var salary = random.Next(3000, 8000);
-                    var projectedPoints = random.Next(0, 30) + ((decimal)random.Next(0, 99)) / 100; ;
+                    var projectedPoints = random.Next(0, 30) + ((decimal)random.Next(0, 99)) / 100;
                     var playerPositions = new HashSet<string> {position.Name};
                     var hasSecondPosition = random.Next(0, 2) == 1;
                     if (hasSecondPosition)
