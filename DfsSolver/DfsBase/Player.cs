@@ -85,5 +85,18 @@ namespace DfsBase
 	        var positions = Positions.Aggregate("", (current, pos) => current + pos + ",");
 	        return $"{ChosenPosition} {Salary} {ProjectedPoints} {Name} {positions}";
 		}
-	}
+
+        public void ClearChosen()
+        {
+            ChosenAtPosition0 = 0;
+            ChosenAtPosition1 = 0;
+            ChosenAtPosition2 = 0;
+            ChosenAtPosition3 = 0;
+            ChosenAtPosition4 = 0;
+            ChosenAtPosition5 = 0;
+            ChosenAtPosition6 = 0;
+            ChosenAtPosition7 = 0;
+            ChosenAtPosition8 = 0;
+        }
+    }
 }
