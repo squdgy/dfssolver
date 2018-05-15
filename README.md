@@ -1,7 +1,9 @@
 # dfssolver
 
-Example of how to use Microsoft Solver Foundation to build an optimal DFS lineup
-=================================================================================
+Examples of how to use Microsoft Solver Foundation and Google Or-Tools to build an optimal DFS lineup
+=====================================================================================================
+There are 2 projects, which each do the exact same thing, so you can compare/contrast.
+Microsoft Solver Foundation is no longer being worked on, so OrTools is the preferable option.
 
 * Assumes lineup makeup of DraftKings MLB 2016, but should work with other lineup configurations easily
 * Uses randomly generated player data
