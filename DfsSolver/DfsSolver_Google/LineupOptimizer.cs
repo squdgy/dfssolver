@@ -9,6 +9,8 @@ namespace DfsSolver_Google
 {
     public class LineupOptimizer
     {
+        private const int TIME_LIMIT_IN_MS = 5000;
+
         /// <summary>
         /// Generate an optimal lineup which maximizes for projected points
         /// </summary>
@@ -42,6 +44,11 @@ namespace DfsSolver_Google
             var unfilledPosNames = unfilledSlots.Where(ls => ls.Count > 0).Select(ls => ls.Name).ToList();
             availablePlayers = availablePlayers.Where(
                     p => unfilledPosNames.Intersect(p.Positions).Any()).ToList();
+
+            // do a further trim, such that for each set of eligibilities there is at most 1 player
+            // who meets those eligibilities and has a projected point value of 0
+            // that player should be the lowest salaried player
+            var groupings = availablePlayers.Where(a => a.ProjectedPoints == 0).GroupBy(a => a.PositionsText);
 
             // Using a constraint solver, so far uses salary, projected points and salary cap
             var solver = new Solver("lineup optimizer");
@@ -114,26 +121,48 @@ namespace DfsSolver_Google
             IntVar total_projected_points = (from i in Enumerable.Range(0, availableSlots.Count)
                                  from j in Enumerable.Range(0, availablePlayers.Count)
                                  select (projectedPoints[j] * isChosen[i, j])).ToArray().Sum().Var();
-            OptimizeVar objective = total_projected_points.Maximize(1);
-  
-            DecisionBuilder db = solver.MakePhase(isChosen_flat,
-                                      Solver.INT_VAR_DEFAULT,
-                                      Solver.ASSIGN_MAX_VALUE);
+            var objective = solver.MakeMaximize(total_projected_points, 1);
 
-            solver.NewSearch(db, objective);
-            var selectedPlayers = new List<Player>();
-            while (solver.NextSolution())
+            // create the main decision builder phase of the solver
+            var db = solver.MakePhase(isChosen_flat, Solver.INT_VAR_DEFAULT, Solver.ASSIGN_MAX_VALUE);
+
+            // create a collector - this will collect all solutions and make them available at the end
+            var collector = solver.MakeAllSolutionCollector();
+            collector.Add(isChosen_flat);
+            collector.AddObjective(total_projected_points);
+
+            // set a time limit; will return the best solution within the time limit
+            var solverTimeLimit = solver.MakeTimeLimit(TIME_LIMIT_IN_MS);
+
+            // create a search logger - useful for debugging (only use then)
+            // reports after each solution and after each 1000 branches
+            //var searchLogger = solver.MakeSearchLog(1000, objective);
+            //bool solutionFound = solver.Solve(db, searchLogger, objective, solverTimeLimit, collector);
+
+            var startingWallTime = solver.WallTime();
+            bool solutionFound = solver.Solve(db, objective, solverTimeLimit, collector);
+            var elapsedWallTime = solver.WallTime() - startingWallTime;
+            if (!solutionFound)
             {
+                Log("No solution found");
+                return null;
+            }
+
+            var numSolutions = collector.SolutionCount();
+            var selectedPlayers = new List<Player>();
+            for (var soli = 0; soli < collector.SolutionCount(); soli++)
+            {
+                // clear out solution from last time through
                 foreach (var ap in availablePlayers)
                 {
-                    // clear out solution from last time through
                     ap.ClearChosen();
                 }
                 for (int i = 0; i < availableSlots.Count; i++)
                 {
                     for (int j = 0; j < availablePlayers.Count; j++)
                     {
-                        if (isChosen[i, j].Value() == 1)
+                        var val = collector.Value(soli, isChosen[i, j]);
+                        if (val == 1)//(isChosen[i, j].Value() == 1)
                         {
                             var posindex = availableSlots[i].SlotIndex;
                             if (posindex == 0) availablePlayers[j].ChosenAtPosition0 = 1;
@@ -160,7 +189,11 @@ namespace DfsSolver_Google
                 }
             }
 
-            return null;
+            return new LineupSolution
+            {
+                Lineup = playerPool.Where(p => p.Chosen).ToList(),
+                IsOptimal = elapsedWallTime <= TIME_LIMIT_IN_MS
+            };
         }
 
         private static void ReportSolution(ICollection<Player> playerPool,

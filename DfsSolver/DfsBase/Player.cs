@@ -15,9 +15,10 @@ namespace DfsBase
 	    }
 
         public int Id { get; internal set; }
-		public string Name { get; internal set; }
-		public HashSet<string> Positions { get; internal set; }
-		public decimal ProjectedPoints { get; internal set; }
+        public string Name { get; internal set; }
+        public HashSet<string> Positions { get; internal set; }
+        public string PositionsText => Positions.Aggregate("", (current, pos) => current + pos + ",");
+        public decimal ProjectedPoints { get; internal set; }
 		public int Salary { get; internal set; }
 
         // used for solver Decision binding
@@ -82,8 +83,7 @@ namespace DfsBase
 
 	    public override string ToString()
 	    {
-	        var positions = Positions.Aggregate("", (current, pos) => current + pos + ",");
-	        return $"{ChosenPosition} {Salary} {ProjectedPoints} {Name} {positions}";
+	        return $"{ChosenPosition} {Salary} {ProjectedPoints} {Name} {PositionsText}";
 		}
 
         public void ClearChosen()

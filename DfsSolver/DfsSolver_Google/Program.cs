@@ -44,7 +44,7 @@ namespace DfsSolver_Google
         };
         private static void Main()
         {
-            LineupOptimizer.Solve(PlayerProvider.GetPlayersRandom(MLBPositions, 2).ToList(), MLBDraftPositions, 50000);
+            LineupOptimizer.Solve(PlayerProvider.GetPlayersRandom(MLBPositions, 100).ToList(), MLBDraftPositions, 50000);
             //LineupOptimizer.Solve(PlayerProvider.GetPlayersRandom(NASPositions, 7).ToList(), NASDraftPositions, 50000);
         }
     }
