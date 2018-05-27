@@ -28,6 +28,8 @@ namespace DfsSolver_Google
             var unfilledSlots = new List<LineupSlot>();
             var prefilledGames = prefilled.Select(p => p.GameId).Distinct();
             var numGamesNeeded = Math.Max(rules.MinGames - prefilledGames.Count(), 0);
+            var prefilledTeams = prefilled.Select(p => p.TeamId).Distinct();
+            var numTeamsNeeded = Math.Max(rules.MinTeams = prefilledTeams.Count(), 0);
             var slotIndex = 0;
             foreach (var slot in lineupSlots)
             {
@@ -67,6 +69,10 @@ namespace DfsSolver_Google
             //          6. whether or not that player is eligible to play in that slot
             var cap = unfilledCap;
             var salaries = availablePlayers.Select(ap => ap.Salary).ToArray();
+            var playerGames = availablePlayers.Select(ap => ap.GameId).ToArray();
+            var gameIds = playerGames.Distinct().ToList();
+            var playerTeams = availablePlayers.Select(ap => ap.TeamId).ToArray();
+            var teamIds = playerTeams.Distinct().ToList();
             var projectedPoints = availablePlayers.Select(ap => (int)(ap.ProjectedPoints * 1000)).ToArray();
             var availableSlots = unfilledSlots.Where(us => us.Count > 0).ToList();
             int[,] eligibilities = new int[availableSlots.Count, availablePlayers.Count];
@@ -120,10 +126,9 @@ namespace DfsSolver_Google
             if (rules.MinGames > 1 && numGamesNeeded > 0)
             {
                 // TODO: use global cardinality constraint?
-                var playerGames = availablePlayers.Select(ap => ap.GameId).ToArray();
-                var gameIds = playerGames.Distinct().ToList();
                 var gamesUsed = solver.MakeBoolVarArray(gameIds.Count());
 
+                // This following block constrains the decision variable for each game to 0 or 1
                 for (int i = 0; i < gameIds.Count; i++)
                 {
                     // sum the # of prefilled instances of this game with the 
@@ -135,9 +140,32 @@ namespace DfsSolver_Google
                                 from k in Enumerable.Range(0, availablePlayers.Count)
                                 select (playerGames[k] * isChosen[j, k] == gameIds[i])).ToArray().Sum() > 0);
                 }
-
                 solver.Add((from i in Enumerable.Range(0, gameIds.Count)
                             select gamesUsed[i]).ToArray().Sum() >= numGamesNeeded);
+            }
+
+            // There have to be at least so many teams represented,
+            // If there's only 1 team needed or teams constraint has been satisfied by prefilled
+            // players, then skip constraint
+            if (rules.MinTeams > 1 && numTeamsNeeded > 0)
+            {
+                // TODO: use global cardinality constraint?
+                var teamsUsed = solver.MakeBoolVarArray(teamIds.Count());
+
+                // This following block constrains the decision variable for each team to 0 or 1
+                for (int i = 0; i < teamIds.Count; i++)
+                {
+                    // sum the # of prefilled instances of this team with the 
+                    // decision instances of this game and set teamsUsed to true if that sum is
+                    // greater than 0
+                    solver.Add(teamsUsed[i] ==
+                                (prefilledGames.Contains(teamIds[i]) ? 1 : 0) +
+                                (from j in Enumerable.Range(0, availableSlots.Count)
+                                 from k in Enumerable.Range(0, availablePlayers.Count)
+                                 select (playerTeams[k] * isChosen[j, k] == teamIds[i])).ToArray().Sum() > 0);
+                }
+                solver.Add((from i in Enumerable.Range(0, teamIds.Count)
+                            select teamsUsed[i]).ToArray().Sum() >= numTeamsNeeded);
             }
 
             // TODO: Create More Constraints
