@@ -1,5 +1,6 @@
 ﻿// This program uses Google Optimization Tools (OR-tools) and the GLOP solver
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using DfsBase;
@@ -35,6 +36,14 @@ namespace DfsSolver_Google
                 new LineupSlot{ Name = "RF", Count = 1 },
             };
 
+        private static ContestRules MLBRules1 = new ContestRules
+        {
+            SalaryCap = 50000,
+            MinGames = 5,
+            MinTeams = 3,
+            MaxPerTeam = 4
+        };
+
         public static Position[] NASPositions = {
             new Position {Id = 500, Name = "D"}
         };
@@ -42,10 +51,19 @@ namespace DfsSolver_Google
         {
             new LineupSlot{ Name = "D", Count = 6 }
         };
+        private static ContestRules NASRules1 = new ContestRules
+        {
+            SalaryCap = 50000,
+            MinGames = 1,
+            MinTeams = 1,
+            MaxPerTeam = -1
+        };
+
+
         private static void Main()
         {
-            LineupOptimizer.Solve(PlayerProvider.GetPlayersRandom(MLBPositions, 100).ToList(), MLBDraftPositions, 50000);
-            //LineupOptimizer.Solve(PlayerProvider.GetPlayersRandom(NASPositions, 7).ToList(), NASDraftPositions, 50000);
+            LineupOptimizer.Solve(PlayerProvider.GetPlayersRandom(MLBPositions, 100, 15, 2).ToList(), MLBDraftPositions, MLBRules1);
+            //LineupOptimizer.Solve(PlayerProvider.GetPlayersRandom(NASPositions, 7, 1, 1).ToList(), NASDraftPositions, NASRules1);
         }
     }
 }

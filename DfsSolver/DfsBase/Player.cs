@@ -20,6 +20,8 @@ namespace DfsBase
         public string PositionsText => Positions.Aggregate("", (current, pos) => current + pos + ",");
         public decimal ProjectedPoints { get; internal set; }
 		public int Salary { get; internal set; }
+        public int TeamId { get; set; }
+        public int GameId { get; set; }
 
         // used for solver Decision binding
         public double ChosenAtPosition0 { get; set; }
@@ -83,7 +85,7 @@ namespace DfsBase
 
 	    public override string ToString()
 	    {
-	        return $"{ChosenPosition} {Salary} {ProjectedPoints} {Name} {PositionsText}";
+	        return $"{ChosenPosition} {Salary} {ProjectedPoints} {Name} Team: {TeamId} Game: {GameId} {PositionsText}";
 		}
 
         public void ClearChosen()

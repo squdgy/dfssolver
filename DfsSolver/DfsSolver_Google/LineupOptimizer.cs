@@ -18,14 +18,16 @@ namespace DfsSolver_Google
         /// <param name="lineupSlots">all lineup positions with the count of how many to draft</param>
         /// <param name="salaryCap">salary cap for the contest</param>
         /// <returns></returns>
-        public static LineupSolution Solve(IList<Player> playerPool, IList<LineupSlot> lineupSlots, int salaryCap)
+        public static LineupSolution Solve(IList<Player> playerPool, IList<LineupSlot> lineupSlots, ContestRules rules)
         {
             // deal with pre filled slots
             var validLineupCount = lineupSlots.Sum(ls => ls.Count);
             var prefilled = playerPool.Where(p => p.Chosen).ToList();
             var availablePlayers = playerPool.Except(prefilled).ToList();
-            var unfilledCap = salaryCap - prefilled.Sum(p => p.Salary);
+            var unfilledCap = rules.SalaryCap - prefilled.Sum(p => p.Salary);
             var unfilledSlots = new List<LineupSlot>();
+            var prefilledGames = prefilled.Select(p => p.GameId).Distinct();
+            var numGamesNeeded = Math.Max(rules.MinGames - prefilledGames.Count(), 0);
             var slotIndex = 0;
             foreach (var slot in lineupSlots)
             {
@@ -58,9 +60,11 @@ namespace DfsSolver_Google
             //      1. salary cap 
             // for each player: 
             //      2. salary
-            //      3. projected points
+            //      3. gameId
+            //      4. teamId
+            //      5. projected points
             //      for each unfilled slot: 
-            //          4. whether or not that player is eligible to play in that slot
+            //          6. whether or not that player is eligible to play in that slot
             var cap = unfilledCap;
             var salaries = availablePlayers.Select(ap => ap.Salary).ToArray();
             var projectedPoints = availablePlayers.Select(ap => (int)(ap.ProjectedPoints * 1000)).ToArray();
@@ -77,8 +81,8 @@ namespace DfsSolver_Google
             // ---- Define Decision Variables ----
             // for each player and slot:
             //      1. boolean value indicating if the player will be included
-            IntVar[,] isChosen = solver.MakeBoolVarMatrix(availableSlots.Count, availablePlayers.Count, "isChosen");
-            IntVar[] isChosen_flat = isChosen.Flatten();
+            var isChosen = solver.MakeBoolVarMatrix(availableSlots.Count, availablePlayers.Count, "isChosen");
+            var isChosen_flat = isChosen.Flatten();
 
             // ---- Define Constraints ----
 
@@ -110,10 +114,34 @@ namespace DfsSolver_Google
                        from j in Enumerable.Range(0, availablePlayers.Count)
                        select (salaries[j] * isChosen[i, j])).ToArray().Sum() <= cap);
 
+            // There have to be at least so many games represented,
+            // If there's only 1 game needed or games constraint has been satisfied by prefilled
+            // players, then skip constraint
+            if (rules.MinGames > 1 && numGamesNeeded > 0)
+            {
+                // TODO: use global cardinality constraint?
+                var playerGames = availablePlayers.Select(ap => ap.GameId).ToArray();
+                var gameIds = playerGames.Distinct().ToList();
+                var gamesUsed = solver.MakeBoolVarArray(gameIds.Count());
+
+                for (int i = 0; i < gameIds.Count; i++)
+                {
+                    // sum the # of prefilled instances of this game with the 
+                    // decision instances of this game and set gameUsed to true if that sum is
+                    // greater than 0
+                    solver.Add(gamesUsed[i] ==
+                                (prefilledGames.Contains(gameIds[i]) ? 1 : 0) +
+                                (from j in Enumerable.Range(0, availableSlots.Count)
+                                from k in Enumerable.Range(0, availablePlayers.Count)
+                                select (playerGames[k] * isChosen[j, k] == gameIds[i])).ToArray().Sum() > 0);
+                }
+
+                solver.Add((from i in Enumerable.Range(0, gameIds.Count)
+                            select gamesUsed[i]).ToArray().Sum() >= numGamesNeeded);
+            }
 
             // TODO: Create More Constraints
             // - max per team
-            // - min games
             // - min teams
 
             // ---- Define the Goal ----

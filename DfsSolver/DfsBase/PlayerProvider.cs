@@ -14,7 +14,7 @@ namespace DfsBase
         // Also randomly preselects players as "chosen" for a lineup, so
         // that the optimization algorithm can work with some players already having
         // been chosen
-        public static IList<Player> GetPlayersRandom(Position[] positions, int minAtPosition)
+        public static IList<Player> GetPlayersRandom(Position[] positions, int minAtPosition, int numGames, int numTeamsPerGame)
         {
             var random = new Random();
             var players = new List<Player>();
@@ -22,12 +22,12 @@ namespace DfsBase
             foreach (var position in positions)
             {
                 var numPlayers = random.Next(minAtPosition, minAtPosition + 10);
-                for (var i = 0; i< numPlayers; i++)
+                for (var i = 0; i < numPlayers; i++)
                 {
                     var name = $"Joe_{id} Player";
                     var salary = random.Next(3000, 8000);
                     var projectedPoints = random.Next(0, 30) + ((decimal)random.Next(0, 99)) / 100;
-                    var playerPositions = new HashSet<string> {position.Name};
+                    var playerPositions = new HashSet<string> { position.Name };
                     var hasSecondPosition = random.Next(0, 2) == 1;
                     if (hasSecondPosition)
                     {
@@ -36,13 +36,18 @@ namespace DfsBase
                         if (!playerPositions.Contains(position2.Name))
                             playerPositions.Add(position2.Name);
                     }
+                    // randomly pick a game Id
+                    var gameId = random.Next(1, numGames + 1) * 10;
+                    var teamId = (gameId * 10) + random.Next(1, numTeamsPerGame + 1);
                     players.Add(new Player(positions.Select(pos => pos.Name).ToArray())
                     {
                         Id = id++,
                         Name = name,
                         ProjectedPoints = projectedPoints,
                         Positions = playerPositions,
-                        Salary = salary
+                        Salary = salary,
+                        GameId = gameId,
+                        TeamId = teamId
                     });
                 }
             }

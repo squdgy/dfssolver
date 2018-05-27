@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ContestRules.cs" />
     <Compile Include="LineupSlot.cs" />
     <Compile Include="Player.cs" />
     <Compile Include="PlayerProvider.cs" />
