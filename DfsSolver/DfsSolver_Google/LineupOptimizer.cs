@@ -30,6 +30,8 @@ namespace DfsSolver_Google
             var numGamesNeeded = Math.Max(rules.MinGames - prefilledGames.Count(), 0);
             var prefilledTeams = prefilled.Select(p => p.TeamId).Distinct();
             var numTeamsNeeded = Math.Max(rules.MinTeams = prefilledTeams.Count(), 0);
+            var prefilledByTeam = prefilled.GroupBy(p => p.TeamId).Select(group => Tuple.Create(group.Key, group.Count()))
+                .ToDictionary(t => t.Item1, t => t.Item2);
             var slotIndex = 0;
             foreach (var slot in lineupSlots)
             {
@@ -159,7 +161,7 @@ namespace DfsSolver_Google
                     // decision instances of this game and set teamsUsed to true if that sum is
                     // greater than 0
                     solver.Add(teamsUsed[i] ==
-                                (prefilledGames.Contains(teamIds[i]) ? 1 : 0) +
+                                (prefilledTeams.Contains(teamIds[i]) ? 1 : 0) +
                                 (from j in Enumerable.Range(0, availableSlots.Count)
                                  from k in Enumerable.Range(0, availablePlayers.Count)
                                  select (playerTeams[k] * isChosen[j, k] == teamIds[i])).ToArray().Sum() > 0);
@@ -168,9 +170,17 @@ namespace DfsSolver_Google
                             select teamsUsed[i]).ToArray().Sum() >= numTeamsNeeded);
             }
 
-            // TODO: Create More Constraints
-            // - max per team
-            // - min teams
+            // Add max players per team constraint
+            if (rules.MaxPerTeam > 0)
+            {
+                for (int i = 0; i < teamIds.Count; i++)
+                {
+                    solver.Add((prefilledByTeam.ContainsKey(teamIds[i]) ? prefilledByTeam[teamIds[i]] : 0) +
+                                (from j in Enumerable.Range(0, availableSlots.Count)
+                                 from k in Enumerable.Range(0, availablePlayers.Count)
+                                 select (playerTeams[k] * isChosen[j, k] == teamIds[i])).ToArray().Sum() <= rules.MaxPerTeam);
+                }
+            }
 
             // ---- Define the Goal ----
             // maximize for projectedPoints
